@@ -1,0 +1,142 @@
+{
+  "MD041": false,
+  "MD013": {
+    "line_length": 250,
+    "heading_line_length": 200,
+    "code_blocks": false,
+    "tables": false,
+    "headings": false,
+    "stern": false
+  },
+  "MD024": {
+    "siblings_only": true
+  },
+  "MD033": {
+    "allowed_elements": [
+      "img",
+      "a",
+      "br",
+      "sup",
+      "sub",
+      "kbd",
+      "mark",
+      "details",
+      "summary"
+    ]
+  },
+  "MD034": false,
+  "MD040": {
+    "allowed_languages": [
+      "bash",
+      "sh",
+      "javascript",
+      "typescript",
+      "json",
+      "yaml",
+      "yml",
+      "markdown",
+      "md",
+      "html",
+      "css",
+      "tsx",
+      "jsx",
+      "text",
+      "txt",
+      "shell",
+      "console",
+      "xml",
+      "dockerfile",
+      "sql",
+      "python",
+      "py",
+      "java",
+      "c",
+      "cpp",
+      "go",
+      "rust",
+      "php",
+      "ruby",
+      "swift",
+      "kotlin",
+      "diff"
+    ],
+    "language_only": false
+  },
+  "MD045": false,
+  "MD036": {
+    "punctuation": ".,;:!?"
+  },
+  "MD025": {
+    "level": 1
+  },
+  "MD012": {
+    "maximum": 2
+  },
+  "MD022": {
+    "lines_above": 1,
+    "lines_below": 1
+  },
+  "MD031": true,
+  "MD032": true,
+  "MD010": true,
+  "MD009": {
+    "br_spaces": 2,
+    "list_item_empty_lines": false,
+    "strict": false
+  },
+  "MD004": {
+    "style": "dash"
+  },
+  "MD029": {
+    "style": "one_or_ordered"
+  },
+  "MD005": true,
+  "MD006": true,
+  "MD011": true,
+  "MD044": {
+    "names": [
+      "JavaScript",
+      "TypeScript",
+      "GitHub",
+      "Node.js",
+      "npm",
+      "pnpm",
+      "yarn",
+      "React",
+      "Vue",
+      "Angular",
+      "Next.js",
+      "Nuxt.js",
+      "Vite",
+      "Webpack",
+      "Rollup",
+      "ESLint",
+      "Prettier",
+      "Vitest",
+      "Jest",
+      "Cypress",
+      "Playwright",
+      "Storybook",
+      "Tailwind CSS",
+      "CSS",
+      "HTML",
+      "JSON",
+      "YAML",
+      "XML",
+      "API",
+      "CLI",
+      "UI",
+      "UX",
+      "HTTP",
+      "HTTPS",
+      "URL",
+      "URI",
+      "UUID",
+      "ID",
+      "README",
+      "LICENSE",
+      "CHANGELOG"
+    ],
+    "code_blocks": false
+  }
+}
