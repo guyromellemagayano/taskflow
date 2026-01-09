@@ -6,6 +6,7 @@ import { ApolloProvider } from "@apollo/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactNode } from "react";
 import { apolloClient } from "./graphql/client";
+import { AuthProvider } from "./auth/context";
 
 // Mantine theme configuration with dark mode support
 const theme = createTheme({
@@ -36,7 +37,7 @@ export function Providers({ children }: ProvidersProps) {
     <MantineProvider theme={theme} defaultColorScheme="auto">
       <ApolloProvider client={apolloClient}>
         <QueryClientProvider client={queryClient}>
-          {children}
+          <AuthProvider>{children}</AuthProvider>
         </QueryClientProvider>
       </ApolloProvider>
     </MantineProvider>

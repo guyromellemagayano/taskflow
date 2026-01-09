@@ -10,11 +10,13 @@ const httpLink = createHttpLink({
 
 // Auth link to add token to requests
 const authLink = setContext((_, { headers }) => {
-  // Phase 1: No token handling yet
-  // Phase 2: Will read token from cookies/localStorage and add to headers
+  // Get access token from localStorage
+  const token = typeof window !== "undefined" ? localStorage.getItem("taskflow_access_token") : null;
+
   return {
     headers: {
       ...headers,
+      ...(token && { authorization: `Bearer ${token}` }),
     },
   };
 });
