@@ -31,7 +31,12 @@ def create_refresh_token(data: dict) -> str:
 
 
 def verify_token(token: str, token_type: str = "access") -> dict:
-    """Verify JWT token"""
+    """
+    Verify JWT token
+
+    Note: This function raises HTTPException for use in FastAPI routes.
+    For GraphQL, use verify_token_safe which raises AuthenticationError instead.
+    """
     if not token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -63,12 +68,26 @@ def verify_token(token: str, token_type: str = "access") -> dict:
         )
 
 
-def get_current_user(token: str) -> dict:
-    """Get current user from token (Phase 1: returns token payload)"""
-    payload = verify_token(token)
-    # Phase 1: Just return the payload
-    # Phase 2: Will fetch actual user from database
-    return {
-        "user_id": payload.get("sub"),
-        "email": payload.get("email"),
-    }
+def verify_token_safe(token: str, token_type: str = "access") -> dict:
+    """
+    Verify JWT token (safe for GraphQL - raises AuthenticationError instead of HTTPException)
+    """
+    from app.core.exceptions import AuthenticationError
+
+    if not token:
+        raise AuthenticationError("Token is required")
+
+    try:
+        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+
+        # Verify token type
+        if payload.get("type") != token_type:
+            raise AuthenticationError("Invalid token type")
+
+        # Verify required fields
+        if not payload.get("sub"):
+            raise AuthenticationError("Invalid token: missing subject")
+
+        return payload
+    except JWTError:
+        raise AuthenticationError("Could not validate credentials")
