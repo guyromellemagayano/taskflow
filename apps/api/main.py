@@ -2,18 +2,19 @@
 TaskFlow FastAPI Application Entry Point
 """
 
+import structlog
+from app.auth.routes import router as auth_router
+from app.cache import close_redis, get_redis
+from app.core.config import settings
+from app.core.errors import setup_exception_handlers
+from app.graphql.context import get_context
+from app.graphql.schema import schema
+from app.middleware.rate_limit import setup_rate_limiting
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-import structlog
+from prometheus_client import Counter, Histogram, make_asgi_app
 from strawberry.fastapi import GraphQLRouter
-from prometheus_client import make_asgi_app, Counter, Histogram
-
-from app.core.config import settings
-from app.core.errors import setup_exception_handlers
-from app.graphql.schema import schema
-from app.auth.routes import router as auth_router
-from app.middleware.rate_limit import setup_rate_limiting
 
 logger = structlog.get_logger(__name__)
 
@@ -23,13 +24,29 @@ app = FastAPI(
     version="0.1.0",
 )
 
+
 # CORS middleware
+# CORS_ORIGINS is already parsed by Pydantic validator in config.py
+cors_origins = (
+    settings.CORS_ORIGINS
+    if isinstance(settings.CORS_ORIGINS, list)
+    else list(settings.CORS_ORIGINS)
+)
+
+# Log CORS origins for debugging
+logger.info("CORS origins configured", origins=cors_origins)
+
+# Add CORS middleware - must be added before other middleware
+# Note: Cannot use wildcard "*" when allow_credentials=True
+# Must use specific origins even in development
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
+    allow_origins=cors_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allow_headers=["Content-Type", "Authorization", "Accept", "Origin", "X-Requested-With"],
+    expose_headers=["*"],
+    max_age=3600,
 )
 
 # Setup exception handlers
@@ -49,11 +66,26 @@ REQUEST_DURATION = Histogram(
 )
 
 # GraphQL endpoint
-graphql_app = GraphQLRouter(schema)
+graphql_app = GraphQLRouter(schema, context_getter=get_context)
 app.include_router(graphql_app, prefix="/graphql")
 
 # Auth routes
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize services on startup"""
+    # Initialize Redis connection pool
+    await get_redis()
+    logger.info("Application startup complete")
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Cleanup on shutdown"""
+    await close_redis()
+    logger.info("Application shutdown complete")
 
 
 @app.get("/")
@@ -96,6 +128,21 @@ async def health_check():
 async def readiness_check():
     """Readiness check endpoint"""
     return JSONResponse({"status": "ready"})
+
+
+@app.options("/{full_path:path}")
+async def options_handler(full_path: str):
+    """Handle OPTIONS requests for CORS preflight"""
+    return JSONResponse(
+        content={},
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, PATCH",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept, Origin, X-Requested-With",
+            "Access-Control-Allow-Credentials": "true",
+            "Access-Control-Max-Age": "3600",
+        },
+    )
 
 
 if __name__ == "__main__":
