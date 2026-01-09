@@ -1,4 +1,4 @@
-import { gql } from "@apollo/client";
+// import { gql } from "@apollo/client";
 
 // Phase 1: GraphQL mutations (stubs)
 // Phase 2: Will add actual mutations for task CRUD operations

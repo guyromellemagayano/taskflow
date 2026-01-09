@@ -3,7 +3,8 @@ import { setContext } from "@apollo/client/link/context";
 
 // HTTP link to GraphQL endpoint
 const httpLink = createHttpLink({
-  uri: process.env.NEXT_PUBLIC_GRAPHQL_URL || "http://api.localhost:8000/graphql",
+  uri:
+    process.env.NEXT_PUBLIC_GRAPHQL_URL || "http://api.localhost:8000/graphql",
   credentials: "include",
 });
 

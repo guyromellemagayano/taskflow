@@ -1,4 +1,4 @@
-import { gql } from "@apollo/client";
+// import { gql } from "@apollo/client";
 
 // Phase 1: GraphQL queries (stubs)
 // Phase 2: Will add actual queries for tasks, user, etc.
