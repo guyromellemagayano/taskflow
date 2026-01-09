@@ -6,7 +6,7 @@ from celery import Celery
 from celery.schedules import crontab
 
 from config.settings import settings
-from tasks import analytics  # noqa: F401, E402
+from tasks import analytics  # noqa: F401
 
 # Create Celery app
 app = Celery(
