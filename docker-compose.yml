@@ -1,0 +1,215 @@
+services:
+  traefik:
+    image: traefik:v2.10
+    container_name: taskflow-traefik
+    # All Traefik configuration inline - no external config files needed
+    command:
+      - sh
+      - -c
+      - |
+        # Generate dynamic routing config
+        cat > /traefik-dynamic.yml <<'EOF'
+        http:
+          routers:
+            api-host:
+              rule: "Host(`api.localhost`)"
+              service: api
+              entryPoints: [web]
+              priority: 30
+            api-exact:
+              rule: "Path(`/api`)"
+              service: api
+              entryPoints: [web]
+              priority: 25
+            api-prefix:
+              rule: "PathPrefix(`/api/`)"
+              service: api
+              entryPoints: [web]
+              middlewares: [api-stripprefix]
+              priority: 20
+            web:
+              rule: "Host(`localhost`) || Host(`taskflow.localhost`)"
+              service: web
+              entryPoints: [web]
+              priority: 1
+          services:
+            api:
+              loadBalancer:
+                servers:
+                  - url: "http://taskflow-api:8000"
+            web:
+              loadBalancer:
+                servers:
+                  - url: "http://taskflow-web:3000"
+          middlewares:
+            api-stripprefix:
+              stripPrefix:
+                prefixes: ["/api"]
+        EOF
+        # Start Traefik with all settings as command-line arguments
+        traefik \
+          --api.dashboard=true \
+          --api.insecure=true \
+          --entrypoints.web.address=:8000 \
+          --providers.file.filename=/traefik-dynamic.yml \
+          --providers.file.watch=true \
+          --log.level=INFO \
+          --accesslog=true
+    ports:
+      - "8000:8000" # Traefik main entry point
+      - "8080:8080" # Traefik dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: unless-stopped
+    networks:
+      - taskflow-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.localhost`)"
+      - "traefik.http.routers.traefik.entrypoints=web"
+      - "traefik.http.services.traefik.loadbalancer.server.port=8080"
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: taskflow-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: taskflow
+      POSTGRES_INITDB_ARGS: "-E UTF8 --locale=C"
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - taskflow-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: taskflow-redis
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    ports:
+      - "${REDIS_PORT:-6380}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+    networks:
+      - taskflow-network
+
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: taskflow-api
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/taskflow
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-your-secret-key-change-in-production}
+      JWT_ALGORITHM: HS256
+      JWT_ACCESS_TOKEN_EXPIRE_MINUTES: 15
+      JWT_REFRESH_TOKEN_EXPIRE_DAYS: 7
+      CORS_ORIGINS: '["http://localhost:8000", "http://taskflow.localhost:8000"]'
+      ENVIRONMENT: development
+      DEBUG: "true"
+    volumes:
+      - ./apps/api:/app
+      - /app/venv
+      - /app/__pycache__
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      traefik:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - taskflow-network
+    labels:
+      - "traefik.enable=true"
+      # Router for api.localhost domain (highest priority)
+      - "traefik.http.routers.api-host.rule=Host(`api.localhost`)"
+      - "traefik.http.routers.api-host.entrypoints=web"
+      - "traefik.http.routers.api-host.service=api"
+      - "traefik.http.routers.api-host.priority=30"
+      # Router for /api exact path (no stripping needed)
+      - "traefik.http.routers.api-exact.rule=Path(`/api`)"
+      - "traefik.http.routers.api-exact.entrypoints=web"
+      - "traefik.http.routers.api-exact.service=api"
+      - "traefik.http.routers.api-exact.priority=25"
+      # Router for /api/* paths (with prefix stripping)
+      - "traefik.http.routers.api-prefix.rule=PathPrefix(`/api/`)"
+      - "traefik.http.routers.api-prefix.entrypoints=web"
+      - "traefik.http.routers.api-prefix.service=api"
+      - "traefik.http.routers.api-prefix.middlewares=api-stripprefix"
+      - "traefik.http.routers.api-prefix.priority=20"
+      # Middleware to strip /api prefix for sub-paths
+      - "traefik.http.middlewares.api-stripprefix.stripprefix.prefixes=/api"
+      # Service definition
+      - "traefik.http.services.api.loadbalancer.server.port=8000"
+
+  worker:
+    build:
+      context: ./apps/worker
+      dockerfile: Dockerfile
+    container_name: taskflow-worker
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/taskflow
+    volumes:
+      - ./apps/worker:/app
+      - /app/venv
+      - /app/__pycache__
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - taskflow-network
+
+  web:
+    build:
+      context: .
+      dockerfile: ./apps/web/Dockerfile
+    container_name: taskflow-web
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: http://api.localhost:8000
+    depends_on:
+      - api
+      - traefik
+    restart: unless-stopped
+    networks:
+      - taskflow-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web.rule=Host(`localhost`) || Host(`taskflow.localhost`)"
+      - "traefik.http.routers.web.entrypoints=web"
+      - "traefik.http.routers.web.priority=1"
+      - "traefik.http.services.web.loadbalancer.server.port=3000"
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  taskflow-network:
+    driver: bridge
+    name: taskflow-network
