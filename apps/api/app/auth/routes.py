@@ -1,6 +1,7 @@
 """Authentication routes"""
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+import structlog
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from slowapi.util import get_remote_address
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -18,12 +19,14 @@ from app.schemas.auth import LoginRequest, RefreshTokenRequest, TokenResponse
 from app.services.user_service import get_user_by_email, verify_password
 
 router = APIRouter()
+logger = structlog.get_logger(__name__)
 
 
 @router.post("/login", response_model=TokenResponse)
 async def login(
     credentials: LoginRequest,
     request: Request,
+    response: Response,
     db: AsyncSession = Depends(get_db),
 ):
     """Login endpoint - authenticate user and return JWT tokens"""
@@ -37,6 +40,7 @@ async def login(
     # Get user from database
     user = await get_user_by_email(db, credentials.email)
     if not user:
+        logger.warning("Login attempt with non-existent email", email=credentials.email)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
@@ -44,10 +48,15 @@ async def login(
 
     # Verify password
     if not verify_password(credentials.password, user.password_hash):
+        logger.warning(
+            "Login attempt with incorrect password", email=credentials.email, user_id=str(user.id)
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
         )
+
+    logger.info("User logged in successfully", user_id=str(user.id), email=credentials.email)
 
     # Create tokens
     token_data = {
@@ -65,6 +74,31 @@ async def login(
         expires_in_days=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS,
     )
 
+    # Set httpOnly cookies for tokens (more secure than localStorage)
+
+    access_token_expires_seconds = settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60
+    refresh_token_expires_seconds = settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60
+
+    response.set_cookie(
+        key="taskflow_access_token",
+        value=access_token,
+        max_age=access_token_expires_seconds,
+        httponly=settings.COOKIE_HTTPONLY,
+        secure=settings.COOKIE_SECURE,
+        samesite=settings.COOKIE_SAMESITE,
+        path="/",
+    )
+
+    response.set_cookie(
+        key="taskflow_refresh_token",
+        value=refresh_token,
+        max_age=refresh_token_expires_seconds,
+        httponly=settings.COOKIE_HTTPONLY,
+        secure=settings.COOKIE_SECURE,
+        samesite=settings.COOKIE_SAMESITE,
+        path="/",
+    )
+
     return TokenResponse(
         access_token=access_token,
         refresh_token=refresh_token,
@@ -75,6 +109,7 @@ async def login(
 async def refresh_token_endpoint(
     request_data: RefreshTokenRequest,
     request: Request,
+    response: Response,
     db: AsyncSession = Depends(get_db),
 ):
     """Refresh access token with rotation"""
@@ -138,6 +173,31 @@ async def refresh_token_endpoint(
         expires_in_days=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS,
     )
 
+    # Set httpOnly cookies for new tokens
+
+    access_token_expires_seconds = settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60
+    refresh_token_expires_seconds = settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60
+
+    response.set_cookie(
+        key="taskflow_access_token",
+        value=access_token,
+        max_age=access_token_expires_seconds,
+        httponly=settings.COOKIE_HTTPONLY,
+        secure=settings.COOKIE_SECURE,
+        samesite=settings.COOKIE_SAMESITE,
+        path="/",
+    )
+
+    response.set_cookie(
+        key="taskflow_refresh_token",
+        value=new_refresh_token,
+        max_age=refresh_token_expires_seconds,
+        httponly=settings.COOKIE_HTTPONLY,
+        secure=settings.COOKIE_SECURE,
+        samesite=settings.COOKIE_SAMESITE,
+        path="/",
+    )
+
     return TokenResponse(
         access_token=access_token,
         refresh_token=new_refresh_token,
@@ -148,6 +208,7 @@ async def refresh_token_endpoint(
 async def logout(
     request_data: RefreshTokenRequest,
     request: Request,
+    response: Response,
 ):
     """Logout endpoint - revoke refresh token"""
     if not request_data.refresh_token:
@@ -171,5 +232,9 @@ async def logout(
     except HTTPException:
         # If token is invalid, still return success (idempotent)
         pass
+
+    # Clear cookies
+    response.delete_cookie(key="taskflow_access_token", path="/")
+    response.delete_cookie(key="taskflow_refresh_token", path="/")
 
     return {"message": "Logged out successfully"}

@@ -49,6 +49,11 @@ class Settings(BaseSettings):
                 return [origin.strip() for origin in v.split(",") if origin.strip()]
         return v
 
+    # Cookie settings
+    COOKIE_SECURE: bool = False  # Set to True in production (HTTPS only)
+    COOKIE_HTTPONLY: bool = True  # httpOnly cookies for security
+    COOKIE_SAMESITE: str = "lax"  # CSRF protection: "strict", "lax", or "none"
+
     # Environment
     ENVIRONMENT: str = "development"
     DEBUG: bool = True

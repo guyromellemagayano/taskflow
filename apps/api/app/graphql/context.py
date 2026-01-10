@@ -19,7 +19,12 @@ class GraphQLContext(BaseContext):
         self._user: Optional[User] = None
 
     async def get_db(self) -> AsyncSession:
-        """Get database session"""
+        """
+        Get database session (lazy initialization)
+
+        Note: Session is automatically cleaned up by Strawberry's BaseContext.cleanup()
+        which is called after each GraphQL request completes.
+        """
         if self._db is None:
             # Create a new session for this request
             from app.database import AsyncSessionLocal
@@ -28,16 +33,32 @@ class GraphQLContext(BaseContext):
         return self._db
 
     async def cleanup(self) -> None:
-        """Cleanup resources (called after request)"""
+        """
+        Cleanup resources (called automatically by Strawberry after each request)
+
+        This ensures database sessions are properly closed and transactions are rolled back.
+        """
         if self._db:
             try:
                 # Rollback any uncommitted transactions
                 await self._db.rollback()
-            except Exception:
-                pass  # Ignore rollback errors if session is already closed
+            except Exception as e:
+                # Log but don't fail on cleanup errors
+                import structlog
+
+                logger = structlog.get_logger(__name__)
+                logger.warning("Error during session rollback", error=str(e))
             finally:
-                await self._db.close()
-                self._db = None
+                try:
+                    await self._db.close()
+                except Exception as e:
+                    import structlog
+
+                    logger = structlog.get_logger(__name__)
+                    logger.warning("Error closing database session", error=str(e))
+                finally:
+                    self._db = None
+                    self._user = None  # Clear cached user as well
 
     async def get_user(self) -> Optional[User]:
         """Get current authenticated user from request"""
@@ -68,7 +89,12 @@ class GraphQLContext(BaseContext):
             db = await self.get_db()
             self._user = await get_user_by_id(db, user_id)
             return self._user
-        except Exception:
+        except Exception as e:
+            # Log authentication errors for debugging but don't expose details
+            import structlog
+
+            logger = structlog.get_logger(__name__)
+            logger.debug("Authentication error", error=str(e))
             return None
 
     async def require_user(self) -> User:
