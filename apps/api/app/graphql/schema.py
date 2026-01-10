@@ -236,40 +236,42 @@ class Mutation:
         info: Info[GraphQLContext, None],
     ) -> AuthPayload:
         """Register a new user"""
-        from app.auth.jwt import create_access_token, create_refresh_token
-        from app.cache import store_refresh_token
-        from app.core.config import settings
+        import structlog
+
+        from app.auth.jwt import create_auth_tokens_for_user
         from app.core.validation import validate_email, validate_password
         from app.services.user_service import create_user
 
+        logger = structlog.get_logger(__name__)
+
         # Validate email format
         if not validate_email(input.email):
+            logger.warning("Registration attempt with invalid email", email=input.email)
             raise ValueError("Invalid email format")
 
         # Validate password strength
         is_valid, errors = validate_password(input.password)
         if not is_valid:
+            logger.warning(
+                "Registration attempt with weak password", email=input.email, errors=errors
+            )
             raise ValueError("; ".join(errors))
 
         # Create user
         db = await info.context.get_db()
-        user = await create_user(db, input.email, input.password)
+        try:
+            user = await create_user(db, input.email, input.password)
+            logger.info("User registered successfully", user_id=str(user.id), email=input.email)
+        except ValueError as e:
+            # User already exists
+            logger.warning(
+                "Registration attempt with existing email", email=input.email, error=str(e)
+            )
+            raise
 
-        # Create tokens
-        token_data = {
-            "sub": str(user.id),
-            "email": user.email,
-        }
+        # Create tokens and store refresh token
 
-        access_token = create_access_token(token_data)
-        refresh_token = create_refresh_token(token_data)
-
-        # Store refresh token in Redis
-        await store_refresh_token(
-            str(user.id),
-            refresh_token,
-            expires_in_days=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS,
-        )
+        access_token, refresh_token = await create_auth_tokens_for_user(str(user.id), user.email)
 
         return AuthPayload(
             access_token=access_token,
@@ -284,37 +286,33 @@ class Mutation:
         info: Info[GraphQLContext, None],
     ) -> AuthPayload:
         """Login user and return JWT tokens"""
-        from app.auth.jwt import create_access_token, create_refresh_token
-        from app.cache import store_refresh_token
-        from app.core.config import settings
+        import structlog
+
         from app.core.exceptions import AuthenticationError
         from app.services.user_service import get_user_by_email, verify_password
+
+        logger = structlog.get_logger(__name__)
 
         # Get user from database
         db = await info.context.get_db()
         user = await get_user_by_email(db, input.email)
         if not user:
+            logger.warning("Login attempt with non-existent email", email=input.email)
             raise AuthenticationError("Incorrect email or password")
 
         # Verify password
         if not verify_password(input.password, user.password_hash):
+            logger.warning(
+                "Login attempt with incorrect password", email=input.email, user_id=str(user.id)
+            )
             raise AuthenticationError("Incorrect email or password")
 
-        # Create tokens
-        token_data = {
-            "sub": str(user.id),
-            "email": user.email,
-        }
+        logger.info("User logged in successfully", user_id=str(user.id), email=input.email)
 
-        access_token = create_access_token(token_data)
-        refresh_token = create_refresh_token(token_data)
+        # Create tokens and store refresh token
+        from app.auth.jwt import create_auth_tokens_for_user
 
-        # Store refresh token in Redis
-        await store_refresh_token(
-            str(user.id),
-            refresh_token,
-            expires_in_days=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS,
-        )
+        access_token, refresh_token = await create_auth_tokens_for_user(str(user.id), user.email)
 
         return AuthPayload(
             access_token=access_token,
@@ -331,19 +329,23 @@ class Mutation:
         """Refresh access token with rotation"""
         from uuid import UUID
 
-        from app.auth.jwt import create_access_token, create_refresh_token, verify_token
-        from app.cache import (
-            delete_refresh_token,
-            get_refresh_token,
-            is_token_revoked,
-            store_refresh_token,
-        )
-        from app.core.config import settings
+        import structlog
+
+        from app.auth.jwt import verify_token
+        from app.cache import delete_refresh_token, get_refresh_token, is_token_revoked
         from app.core.exceptions import AuthenticationError
         from app.services.user_service import get_user_by_id
 
+        logger = structlog.get_logger(__name__)
+
+        # Rate limiting: 10 attempts per minute per IP
+        # Note: GraphQL doesn't have direct access to request.app.state
+        # We'll implement rate limiting via Redis in the cache layer if needed
+        # For now, we rely on the REST endpoint rate limiting
+
         # Verify refresh token
         if not input.refresh_token:
+            logger.warning("Refresh token mutation called without token")
             raise ValueError("Refresh token is required")
 
         payload = verify_token(input.refresh_token, token_type="refresh")
@@ -357,11 +359,13 @@ class Mutation:
 
         # Check if token is revoked
         if await is_token_revoked(user_id_str, input.refresh_token):
+            logger.warning("Refresh token revoked", user_id=user_id_str)
             raise AuthenticationError("Token has been revoked")
 
         # Verify token exists in Redis
         stored_token = await get_refresh_token(user_id_str, input.refresh_token)
         if not stored_token:
+            logger.warning("Invalid refresh token", user_id=user_id_str)
             raise AuthenticationError("Invalid refresh token")
 
         # Token rotation: Delete old refresh token
@@ -372,23 +376,15 @@ class Mutation:
         db = await info.context.get_db()
         user = await get_user_by_id(db, user_id)
         if not user:
+            logger.warning("User not found during token refresh", user_id=user_id_str)
             raise AuthenticationError("User not found")
 
-        # Create new tokens
-        token_data = {
-            "sub": user_id_str,
-            "email": email,
-        }
+        logger.info("Token refreshed successfully", user_id=user_id_str, email=email)
 
-        access_token = create_access_token(token_data)
-        new_refresh_token = create_refresh_token(token_data)
+        # Create new tokens and store refresh token
+        from app.auth.jwt import create_auth_tokens_for_user
 
-        # Store new refresh token in Redis
-        await store_refresh_token(
-            user_id_str,
-            new_refresh_token,
-            expires_in_days=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS,
-        )
+        access_token, new_refresh_token = await create_auth_tokens_for_user(user_id_str, email)
 
         return AuthPayload(
             access_token=access_token,
