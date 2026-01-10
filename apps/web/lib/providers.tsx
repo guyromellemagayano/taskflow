@@ -17,13 +17,20 @@ const theme = createTheme({
   // Phase 2: Will add more theme customization
 });
 
-// TanStack Query configuration
+// TanStack Query configuration for REST API calls
+// Note: GraphQL queries use Apollo Client, TanStack Query is for REST endpoints
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
       retry: 1,
       staleTime: 5 * 60 * 1000, // 5 minutes
+      // Include credentials for httpOnly cookies
+      networkMode: "same-origin",
+    },
+    mutations: {
+      retry: 1,
+      networkMode: "same-origin",
     },
   },
 });
