@@ -1,8 +1,6 @@
 "use client";
 
-/**
- * Authentication context and provider
- */
+/** Authentication context and provider */
 
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { useRouter } from "next/navigation";
@@ -97,6 +95,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
+  // Token refresh queue to prevent race conditions
+  const refreshPromiseRef = React.useRef<Promise<void> | null>(null);
+
   // Check if user is authenticated on mount
   const {
     data: meData,
@@ -142,8 +143,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       router.push("/");
     },
     onError: (error) => {
-      console.error("Login error:", error);
-      throw error;
+      // Extract user-friendly error message
+      const errorMessage =
+        error.graphQLErrors?.[0]?.message ||
+        error.networkError?.message ||
+        "Login failed. Please check your credentials and try again.";
+      // Error will be handled by the component calling login()
+      throw new Error(errorMessage);
     },
   });
 
@@ -151,14 +157,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [registerMutation] = useMutation(REGISTER_MUTATION, {
     onCompleted: (data) => {
       const { accessToken, refreshToken, user } = data.register;
+      // Store tokens in localStorage as fallback (cookies are set by REST endpoint)
+      // For GraphQL, we store in localStorage since GraphQL can't set cookies directly
       setAccessToken(accessToken);
       setRefreshToken(refreshToken);
       setUser(user);
       router.push("/");
     },
     onError: (error) => {
-      console.error("Register error:", error);
-      throw error;
+      // Extract user-friendly error message
+      const errorMessage =
+        error.graphQLErrors?.[0]?.message ||
+        error.networkError?.message ||
+        "Registration failed. Please try again.";
+      // Error will be handled by the component calling register()
+      throw new Error(errorMessage);
     },
   });
 
@@ -237,20 +250,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Refresh token function
+  // Refresh token function with race condition prevention
   const refreshToken = async () => {
+    // If a refresh is already in progress, wait for it
+    if (refreshPromiseRef.current) {
+      return refreshPromiseRef.current;
+    }
+
     const refreshTokenValue = getRefreshToken();
     if (!refreshTokenValue) {
       throw new Error("No refresh token available");
     }
 
-    await refreshTokenMutation({
-      variables: {
-        input: {
-          refreshToken: refreshTokenValue,
-        },
-      },
-    });
+    // Create a promise for this refresh operation
+    const refreshPromise = (async () => {
+      try {
+        await refreshTokenMutation({
+          variables: {
+            input: {
+              refreshToken: refreshTokenValue,
+            },
+          },
+        });
+      } catch (error) {
+        // If refresh fails, clear tokens and redirect to login
+        clearTokens();
+        setUser(null);
+        throw error;
+      } finally {
+        // Clear the promise reference when done
+        refreshPromiseRef.current = null;
+      }
+    })();
+
+    // Store the promise so concurrent calls can wait for it
+    refreshPromiseRef.current = refreshPromise;
+    return refreshPromise;
   };
 
   // Update user when me query completes

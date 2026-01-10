@@ -1,23 +1,18 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-/**
- * Next.js proxy middleware for route protection and authentication
- *
- * Note: Since we're using localStorage for tokens (client-side),
- * this proxy only handles basic route protection.
- * Full authentication checks happen client-side via AuthProvider.
- *
- * In production, consider using httpOnly cookies for better security.
- */
-export function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-
+/** Next.js proxy middleware for route protection and authentication */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function proxy(_request: NextRequest) {
   // Public routes that don't require authentication
-  const publicRoutes = ["/login", "/signup"];
-  const isPublicRoute = publicRoutes.some((route) =>
-    pathname.startsWith(route)
-  );
+  // Note: Currently all routes are allowed through
+  // Client-side AuthProvider handles authentication checks
+  // Future: Implement server-side route protection using httpOnly cookies
+  // const { pathname } = request.nextUrl;
+  // const publicRoutes = ["/login", "/signup"];
+  // const isPublicRoute = publicRoutes.some((route) =>
+  //   pathname.startsWith(route)
+  // );
 
   // For now, we allow all routes through
   // Client-side AuthProvider will handle redirects based on auth state

@@ -2,16 +2,20 @@ import { ApolloClient, InMemoryCache, createHttpLink } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
 
 // HTTP link to GraphQL endpoint
+// credentials: "include" ensures cookies are sent with requests
 const httpLink = createHttpLink({
   uri:
     process.env.NEXT_PUBLIC_GRAPHQL_URL || "http://api.localhost:8000/graphql",
-  credentials: "include",
+  credentials: "include", // Required for httpOnly cookies
 });
 
 // Auth link to add token to requests
 const authLink = setContext((_, { headers }) => {
   // Get access token from localStorage
-  const token = typeof window !== "undefined" ? localStorage.getItem("taskflow_access_token") : null;
+  const token =
+    typeof window !== "undefined"
+      ? localStorage.getItem("taskflow_access_token")
+      : null;
 
   return {
     headers: {
