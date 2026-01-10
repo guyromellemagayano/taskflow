@@ -2,7 +2,6 @@ services:
   traefik:
     image: traefik:v2.10
     container_name: taskflow-traefik
-    # All Traefik configuration inline - no external config files needed
     command:
       - sh
       - -c
@@ -56,8 +55,8 @@ services:
           --log.level=INFO \
           --accesslog=true
     ports:
-      - "8000:8000" # Traefik main entry point
-      - "8080:8080" # Traefik dashboard
+      - "8000:8000"
+      - "8080:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     restart: unless-stopped
@@ -121,7 +120,7 @@ services:
       JWT_ALGORITHM: HS256
       JWT_ACCESS_TOKEN_EXPIRE_MINUTES: 15
       JWT_REFRESH_TOKEN_EXPIRE_DAYS: 7
-      CORS_ORIGINS: '["http://localhost:8000", "http://taskflow.localhost:8000"]'
+      CORS_ORIGINS: '["http://localhost:8000", "http://taskflow.localhost:8000", "http://api.localhost:8000", "http://localhost:3000"]'
       ENVIRONMENT: development
       DEBUG: "true"
     volumes:
@@ -140,25 +139,20 @@ services:
       - taskflow-network
     labels:
       - "traefik.enable=true"
-      # Router for api.localhost domain (highest priority)
       - "traefik.http.routers.api-host.rule=Host(`api.localhost`)"
       - "traefik.http.routers.api-host.entrypoints=web"
       - "traefik.http.routers.api-host.service=api"
       - "traefik.http.routers.api-host.priority=30"
-      # Router for /api exact path (no stripping needed)
       - "traefik.http.routers.api-exact.rule=Path(`/api`)"
       - "traefik.http.routers.api-exact.entrypoints=web"
       - "traefik.http.routers.api-exact.service=api"
       - "traefik.http.routers.api-exact.priority=25"
-      # Router for /api/* paths (with prefix stripping)
       - "traefik.http.routers.api-prefix.rule=PathPrefix(`/api/`)"
       - "traefik.http.routers.api-prefix.entrypoints=web"
       - "traefik.http.routers.api-prefix.service=api"
       - "traefik.http.routers.api-prefix.middlewares=api-stripprefix"
       - "traefik.http.routers.api-prefix.priority=20"
-      # Middleware to strip /api prefix for sub-paths
       - "traefik.http.middlewares.api-stripprefix.stripprefix.prefixes=/api"
-      # Service definition
       - "traefik.http.services.api.loadbalancer.server.port=8000"
 
   worker:
