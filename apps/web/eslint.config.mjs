@@ -5,6 +5,20 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
+  {
+    rules: {
+      // Enforce function declarations for all exported functions, components, and hooks
+      // This ensures better stack traces, React DevTools support, and consistency
+      // Arrow functions are still allowed for callbacks and inline functions
+      "func-style": [
+        "error",
+        "declaration",
+        {
+          allowArrowFunctions: true, // Allow arrow functions for callbacks/inline functions
+        },
+      ],
+    },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:
