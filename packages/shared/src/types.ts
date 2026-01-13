@@ -1,4 +1,9 @@
-// Shared TypeScript types
+/**
+ * @taskflow/shared/types
+ *
+ * Shared TypeScript types for TaskFlow
+ */
+
 export type TaskStatus = "todo" | "in_progress" | "done";
 export type TaskPriority = "low" | "medium" | "high";
 

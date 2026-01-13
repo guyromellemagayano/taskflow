@@ -2,20 +2,45 @@
   "name": "@taskflow/shared",
   "version": "0.1.0",
   "private": true,
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "description": "Shared types and utilities for TaskFlow",
+  "keywords": [
+    "taskflow",
+    "shared",
+    "types",
+    "utilities"
+  ],
+  "homepage": "https://github.com/guyromellemagayano/taskflow/tree/main/packages/shared",
+  "bugs": {
+    "url": "https://github.com/guyromellemagayano/taskflow/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/guyromellemagayano/taskflow.git"
+  },
+  "license": "MIT",
+  "author": "Guy Romelle Magayano <aspiredtechie2010@gmail.com>",
+  "sideEffects": false,
+  "type": "module",
   "exports": {
     ".": {
+      "types": "./src/index.ts",
       "import": "./src/index.ts",
-      "require": "./src/index.ts",
-      "types": "./src/index.ts"
+      "require": "./src/index.ts"
     }
   },
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
   "scripts": {
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "type-check": "tsc --noEmit"
   },
+  "dependencies": {
+    "zod": "catalog:"
+  },
   "devDependencies": {
-    "typescript": "^5.3.3"
+    "typescript": "catalog:"
   }
 }
