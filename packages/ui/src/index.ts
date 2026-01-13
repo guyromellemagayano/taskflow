@@ -1,4 +1,7 @@
-// Shared UI components
-// This package will contain reusable UI components
+/**
+ * @taskflow/ui
+ *
+ * Shared UI components for TaskFlow
+ */
 
 export {};
