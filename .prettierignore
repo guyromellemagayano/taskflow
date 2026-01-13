@@ -1,8 +1,33 @@
-node_modules
-.next
-dist
-build
-coverage
-.turbo
-*.lock
+# Build outputs
+dist/
+dist-ssr/
+build/
+.next/
+out/
+coverage/
+logs/
+
+# Node modules & lockfiles
+node_modules/
+.pnp/
+.pnp.js
+
+# Monorepo cache
+.turbo/
+.cache/
+
+# Generated files
+*.tsbuildinfo
+
+# OS & logs
+.DS_Store
 .env*
+*.local
+*.log
+
+# IDE configs
+.vscode/
+.idea/
+
+# Vercel
+.vercel/
