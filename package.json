@@ -2,24 +2,30 @@
   "name": "taskflow",
   "version": "0.1.0",
   "private": true,
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
-  "packageManager": "npm@9.9.0",
-  "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=9.0.0"
-  },
   "scripts": {
     "build": "turbo run build",
+    "build:packages": "pnpm build --filter=\"@taskflow/*\"",
+    "check-types": "turbo run type-check",
     "clean": "turbo run clean",
-    "commit": "git-cz",
+    "commit": "NPM_CONFIG_LOGLEVEL=error git-cz",
     "commit:retry": "git commit --amend --no-edit",
-    "dev": "turbo run dev",
+    "dev": "turbo run dev --parallel --output-logs=full",
+    "format": "turbo run format",
+    "format:check": "turbo run format:check",
     "lint": "turbo run lint",
+    "lint:fix": "turbo run lint:fix",
     "prepare": "husky",
+    "sort-package-json": "sort-package-json",
+    "sort-package-json:all": "pnpm -r exec sort-package-json",
     "test": "turbo run test",
+    "test:apps": "turbo run test:run --filter='./apps/*'",
+    "test:coverage": "turbo run test:coverage",
+    "test:coverage:apps": "turbo run test:run:coverage --filter='./apps/*'",
+    "test:coverage:packages": "turbo run test:run:coverage --filter='./packages/*'",
+    "test:packages": "turbo run test:run --filter='./packages/*'",
+    "test:run": "turbo run test:run",
+    "test:run:coverage": "turbo run test:run:coverage",
+    "test:watch": "turbo run test --parallel",
     "type-check": "turbo run type-check"
   },
   "config": {
@@ -28,17 +34,30 @@
     }
   },
   "devDependencies": {
-    "@commitlint/cli": "^19.0.0",
-    "@commitlint/config-conventional": "^19.0.0",
-    "commitizen": "^4.3.0",
-    "cz-git": "^1.12.0",
-    "husky": "^9.0.0",
-    "lint-staged": "^15.0.0",
-    "prettier": "^3.2.0",
-    "prettier-plugin-packagejson": "^2.5.20",
-    "prettier-plugin-pkg": "^0.21.2",
-    "prettier-plugin-tailwindcss": "^0.7.2",
-    "turbo": "^2.0.0",
-    "typescript": "^5.3.3"
+    "@commitlint/cli": "catalog:",
+    "@commitlint/config-conventional": "catalog:",
+    "@ianvs/prettier-plugin-sort-imports": "catalog:",
+    "@taskflow/config-eslint": "workspace:*",
+    "@taskflow/config-stylelint": "workspace:*",
+    "@taskflow/config-typescript": "workspace:*",
+    "@taskflow/vitest-presets": "workspace:*",
+    "commitizen": "catalog:",
+    "cz-git": "catalog:",
+    "husky": "catalog:",
+    "lint-staged": "catalog:",
+    "prettier": "catalog:",
+    "prettier-plugin-packagejson": "catalog:",
+    "prettier-plugin-pkg": "catalog:",
+    "prettier-plugin-tailwindcss": "catalog:",
+    "sort-package-json": "catalog:",
+    "stylelint": "catalog:",
+    "turbo": "catalog:",
+    "typescript": "catalog:",
+    "validate-branch-name": "catalog:"
+  },
+  "packageManager": "pnpm@10.28.0+sha512.05df71d1421f21399e053fde567cea34d446fa02c76571441bfc1c7956e98e363088982d940465fd34480d4d90a0668bc12362f8aa88000a64e83d0b0e47be48",
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=10.0.0"
   }
 }
