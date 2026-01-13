@@ -1,0 +1,23 @@
+{
+  "name": "@taskflow/config-stylelint",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Shared Stylelint config for TaskFlow monorepo",
+  "license": "MIT",
+  "type": "commonjs",
+  "exports": {
+    ".": {
+      "default": "./src/index.cjs"
+    }
+  },
+  "main": "./src/index.cjs",
+  "scripts": {
+    "clean": "rm -rf node_modules .turbo dist",
+    "format": "prettier --write \"src/**/*.{js,cjs,mjs,md,mdx}\"",
+    "format:check": "prettier --check \"src/**/*.{js,cjs,mjs,md,mdx}\""
+  },
+  "dependencies": {
+    "stylelint": "catalog:",
+    "stylelint-config-standard-scss": "catalog:"
+  }
+}
