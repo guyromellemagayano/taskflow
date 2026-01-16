@@ -40,9 +40,15 @@ yarn-error.log*
 
 # Turbo
 .turbo
+out/
+node_modules/.cache/turbo
 
 # TypeScript
 *.tsbuildinfo
+
+# Linters
+.stylelintcache
+.eslintcache
 
 # Python
 __pycache__/
@@ -81,3 +87,7 @@ playwright/.cache/
 # Database
 *.db
 *.sqlite
+
+# Old files/folders
+*-old/
+*.old

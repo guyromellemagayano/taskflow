@@ -1,4 +1,4 @@
-.PHONY: help install up down restart logs logs-api logs-worker logs-web logs-traefik logs-postgres logs-redis ps shell-postgres shell-redis clean clean-volumes health check migrate migrate-create migrate-downgrade test test-frontend test-backend test-e2e test-coverage test-frontend-coverage test-backend-coverage dev-frontend dev-backend dev-worker dev-db build build-frontend lint format type-check setup
+.PHONY: help install up down restart logs logs-api logs-worker logs-web logs-traefik logs-postgres logs-redis ps shell-postgres shell-redis clean clean-volumes health check migrate migrate-create migrate-downgrade test test-frontend test-frontend-run test-frontend-ui test-backend test-e2e test-e2e-ui test-coverage test-frontend-coverage test-backend-coverage dev-frontend dev-backend dev-worker dev-db build build-frontend build-analyze lint lint-fix format format-check type-check setup
 
 .DEFAULT_GOAL := help
 
@@ -49,10 +49,10 @@ help: ## Display this help message
 
 ## INSTALLATION
 
-install: ## Install all dependencies (npm + build Docker images)
+install: ## Install all dependencies (pnpm + build Docker images)
 	@echo "$(BLUE)Installing dependencies...$(NC)"
 	@echo "$(YELLOW)Installing Node.js dependencies...$(NC)"
-	@npm install || (echo "$(RED)✗ Failed to install Node.js dependencies$(NC)" && exit 1)
+	@pnpm install || (echo "$(RED)✗ Failed to install Node.js dependencies$(NC)" && exit 1)
 	@echo "$(YELLOW)Building Docker images for all services...$(NC)"
 	@docker-compose build api worker web || (echo "$(RED)✗ Failed to build Docker images$(NC)" && exit 1)
 	@echo "$(GREEN)✓ All dependencies installed$(NC)"
@@ -212,7 +212,23 @@ test-frontend: ## Run frontend tests (Vitest)
 		echo "$(RED)Error: Frontend directory not found$(NC)"; \
 		exit 1; \
 	fi
-	cd apps/web && npm run test
+	cd apps/web && pnpm run test
+
+test-frontend-run: ## Run frontend tests once (non-watch)
+	@echo "$(BLUE)Running frontend tests (once)...$(NC)"
+	@if [ ! -d "apps/web" ]; then \
+		echo "$(RED)Error: Frontend directory not found$(NC)"; \
+		exit 1; \
+	fi
+	cd apps/web && pnpm run test:run
+
+test-frontend-ui: ## Run frontend tests with UI
+	@echo "$(BLUE)Running frontend tests with UI...$(NC)"
+	@if [ ! -d "apps/web" ]; then \
+		echo "$(RED)Error: Frontend directory not found$(NC)"; \
+		exit 1; \
+	fi
+	cd apps/web && pnpm run test:ui
 
 test-backend: ## Run backend tests (pytest in Docker)
 	@echo "$(BLUE)Running backend tests...$(NC)"
@@ -224,7 +240,15 @@ test-e2e: ## Run E2E tests (Playwright)
 		echo "$(RED)Error: Frontend directory not found$(NC)"; \
 		exit 1; \
 	fi
-	cd apps/web && npm run test:e2e
+	cd apps/web && pnpm run test:e2e
+
+test-e2e-ui: ## Run E2E tests with UI
+	@echo "$(BLUE)Running E2E tests with UI...$(NC)"
+	@if [ ! -d "apps/web" ]; then \
+		echo "$(RED)Error: Frontend directory not found$(NC)"; \
+		exit 1; \
+	fi
+	cd apps/web && pnpm run test:e2e:ui
 
 test-coverage: ## Run tests with coverage
 	@echo "$(BLUE)Running tests with coverage...$(NC)"
@@ -237,7 +261,7 @@ test-frontend-coverage: ## Run frontend tests with coverage
 		echo "$(RED)Error: Frontend directory not found$(NC)"; \
 		exit 1; \
 	fi
-	cd apps/web && npm run test:coverage
+	cd apps/web && pnpm run test:coverage
 
 test-backend-coverage: ## Run backend tests with coverage
 	@echo "$(BLUE)Running backend tests with coverage...$(NC)"
@@ -245,9 +269,9 @@ test-backend-coverage: ## Run backend tests with coverage
 
 ## BUILD COMMANDS
 
-build: ## Build all applications (npm + Docker images)
+build: ## Build all applications (pnpm + Docker images)
 	@echo "$(BLUE)Building all applications...$(NC)"
-	@npm run build || echo "$(YELLOW)⚠ npm build failed or not configured$(NC)"
+	@pnpm run build || echo "$(YELLOW)⚠ pnpm build failed or not configured$(NC)"
 	@echo "$(YELLOW)Building Docker images...$(NC)"
 	@docker-compose build api worker web || (echo "$(RED)✗ Failed to build Docker images$(NC)" && exit 1)
 	@echo "$(GREEN)✓ Build complete$(NC)"
@@ -258,25 +282,49 @@ build-frontend: ## Build frontend only
 		echo "$(RED)Error: Frontend directory not found$(NC)"; \
 		exit 1; \
 	fi
-	cd apps/web && npm run build
+	cd apps/web && pnpm run build
+
+build-analyze: ## Analyze frontend bundle size
+	@echo "$(BLUE)Analyzing frontend bundle...$(NC)"
+	@if [ ! -d "apps/web" ]; then \
+		echo "$(RED)Error: Frontend directory not found$(NC)"; \
+		exit 1; \
+	fi
+	cd apps/web && pnpm run analyze
 
 ## CODE QUALITY COMMANDS
 
 lint: ## Lint all code
 	@echo "$(BLUE)Linting code...$(NC)"
-	@npm run lint || echo "$(YELLOW)⚠ Frontend linting failed or not configured$(NC)"
+	@echo "$(YELLOW)Linting JavaScript/TypeScript...$(NC)"
+	@pnpm run lint || echo "$(YELLOW)⚠ Frontend linting failed or not configured$(NC)"
+	@echo "$(YELLOW)Linting CSS...$(NC)"
+	@cd apps/web && pnpm run stylelint || echo "$(YELLOW)⚠ CSS linting failed or not configured$(NC)"
 	@echo "$(YELLOW)Linting Python code...$(NC)"
 	@docker-compose exec -T api ruff check . && docker-compose exec -T api mypy app || echo "$(YELLOW)⚠ Python linting issues found$(NC)"
 
+lint-fix: ## Auto-fix linting issues
+	@echo "$(BLUE)Fixing linting issues...$(NC)"
+	@echo "$(YELLOW)Fixing JavaScript/TypeScript...$(NC)"
+	@pnpm run lint:fix || echo "$(YELLOW)⚠ Frontend lint fix failed$(NC)"
+	@echo "$(YELLOW)Fixing CSS...$(NC)"
+	@cd apps/web && pnpm run stylelint:fix || echo "$(YELLOW)⚠ CSS lint fix failed$(NC)"
+	@echo "$(GREEN)✓ Lint fixes applied$(NC)"
+
 format: ## Format all code
 	@echo "$(BLUE)Formatting code...$(NC)"
-	@npm run format 2>/dev/null || npx prettier --write "**/*.{ts,tsx,js,jsx,json,md}" || echo "$(YELLOW)⚠ Frontend formatting failed or not configured$(NC)"
+	@pnpm run format 2>/dev/null || pnpm exec prettier --write "**/*.{ts,tsx,js,jsx,json,md}" || echo "$(YELLOW)⚠ Frontend formatting failed or not configured$(NC)"
 	@echo "$(YELLOW)Formatting Python code...$(NC)"
 	@docker-compose exec -T api black . && docker-compose exec -T api ruff format . || echo "$(YELLOW)⚠ Python formatting failed$(NC)"
 
+format-check: ## Check code formatting without fixing
+	@echo "$(BLUE)Checking code formatting...$(NC)"
+	@pnpm run format:check || (echo "$(RED)✗ Format check failed$(NC)" && exit 1)
+	@echo "$(GREEN)✓ Formatting is correct$(NC)"
+
 type-check: ## Run TypeScript type checking
 	@echo "$(BLUE)Running type checks...$(NC)"
-	@npm run type-check || (echo "$(RED)✗ Type check failed$(NC)" && exit 1)
+	@pnpm run type-check || (echo "$(RED)✗ Type check failed$(NC)" && exit 1)
 
 ## SETUP COMMANDS
 
@@ -307,5 +355,5 @@ check: ## Check if all prerequisites are met
 	@command -v docker >/dev/null 2>&1 && echo "$(GREEN)✓ Docker installed$(NC)" || echo "$(RED)✗ Docker not found$(NC)"
 	@command -v docker-compose >/dev/null 2>&1 && echo "$(GREEN)✓ Docker Compose installed$(NC)" || echo "$(RED)✗ Docker Compose not found$(NC)"
 	@docker info >/dev/null 2>&1 && echo "$(GREEN)✓ Docker daemon running$(NC)" || echo "$(RED)✗ Docker daemon not running$(NC)"
-	@command -v node >/dev/null 2>&1 && echo "$(GREEN)✓ Node.js installed (optional, for npm scripts)$(NC)" || echo "$(YELLOW)⚠ Node.js not found (optional)$(NC)"
-	@command -v npm >/dev/null 2>&1 && echo "$(GREEN)✓ npm installed (optional, for npm scripts)$(NC)" || echo "$(YELLOW)⚠ npm not found (optional)$(NC)"
+	@command -v node >/dev/null 2>&1 && echo "$(GREEN)✓ Node.js installed (optional, for pnpm scripts)$(NC)" || echo "$(YELLOW)⚠ Node.js not found (optional)$(NC)"
+	@command -v pnpm >/dev/null 2>&1 && echo "$(GREEN)✓ pnpm installed (optional, for pnpm scripts)$(NC)" || echo "$(YELLOW)⚠ pnpm not found (optional)$(NC)"

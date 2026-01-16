@@ -68,7 +68,7 @@ Next up - Task CRUD operations with filtering, sorting, and pagination.
 ## Prerequisites
 
 - **Docker and Docker Compose** (required) - All services run exclusively in Docker containers
-- **Node.js and npm** (optional) - Only needed for running npm scripts locally (linting, testing, etc.)
+- **Node.js and pnpm** (optional) - Only needed for running pnpm scripts locally (linting, testing, etc.)
 - **Note**: No local Python runtime needed! All Python services (API, Worker) run in Docker containers.
 
 ## Getting Started
@@ -82,7 +82,7 @@ make setup
 
 This will:
 
-- Install Node.js dependencies (for npm scripts like linting and testing)
+- Install Node.js dependencies (for pnpm scripts like linting and testing)
 - Build Docker images for all services
 - Start all Docker services (Traefik, PostgreSQL, Redis, API, Worker, Web)
 - Run database migrations
@@ -100,13 +100,13 @@ cd taskflow
 #### 2. Install dependencies
 
 ```bash
-# Install all dependencies (npm + build Docker images)
+# Install all dependencies (pnpm + build Docker images)
 make install
 ```
 
 **Note**: All services run exclusively in Docker containers. The `make install` command will:
 
-- Install Node.js dependencies (for npm scripts)
+- Install Node.js dependencies (for pnpm scripts)
 - Build Docker images for API, Worker, and Web services
 
 #### 3. Start all services
@@ -224,23 +224,23 @@ Run `make help` to see all available commands. Common commands:
 - `make install` - Install all dependencies
 - `make check` - Check prerequisites
 
-### Using npm/pip directly
+### Using pnpm/pip directly
 
 **Root level:**
 
-- `npm run build` - Build all apps (via Turborepo)
-- `npm run test` - Run all tests (via Turborepo)
-- `npm run lint` - Lint all apps (via Turborepo)
-- `npm run type-check` - Type check all apps
+- `pnpm run build` - Build all apps (via Turborepo)
+- `pnpm run test` - Run all tests (via Turborepo)
+- `pnpm run lint` - Lint all apps (via Turborepo)
+- `pnpm run type-check` - Type check all apps
 
 **Note**: All services run in Docker containers. Use `make up` to start all services.
 
 **Frontend (`apps/web`):**
 
-- `npm run dev` - Start Next.js dev server
-- `npm run build` - Build for production
-- `npm run test` - Run Vitest tests
-- `npm run test:e2e` - Run Playwright E2E tests
+- `pnpm run dev` - Start Next.js dev server
+- `pnpm run build` - Build for production
+- `pnpm run test` - Run Vitest tests
+- `pnpm run test:e2e` - Run Playwright E2E tests
 
 **Backend (`apps/api`):**
 

@@ -72,5 +72,5 @@ module.exports = {
   "*.{yaml,yml}": ["prettier --write"],
   "*.md": ["prettier --write"],
   "*.py": ["ruff check --fix", "ruff format"],
-  "**/package.json": ["prettier --write"],
+  "**/package.json": ["sort-package-json", "prettier --write"],
 };

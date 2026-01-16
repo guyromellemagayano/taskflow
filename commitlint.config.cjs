@@ -1,0 +1,73 @@
+/** @type {import('cz-git').UserConfig} */
+module.exports = {
+  extends: ["@commitlint/config-conventional"],
+  rules: {
+    "type-enum": [
+      2,
+      "always",
+      [
+        "feat",
+        "fix",
+        "docs",
+        "style",
+        "refactor",
+        "perf",
+        "test",
+        "build",
+        "ci",
+        "chore",
+        "revert",
+      ],
+    ],
+    "type-case": [2, "always", "lower-case"],
+    "type-empty": [2, "never"],
+    "scope-case": [2, "always", "lower-case"],
+    "subject-case": [
+      2,
+      "never",
+      ["sentence-case", "start-case", "pascal-case", "upper-case"],
+    ],
+    "subject-empty": [2, "never"],
+    "subject-full-stop": [2, "never", "."],
+    "header-max-length": [2, "always", 100],
+    "body-leading-blank": [2, "always"],
+    "body-max-line-length": [2, "always", 250],
+    "footer-leading-blank": [2, "always"],
+  },
+  prompt: {
+    scopes: [
+      { value: "api", name: "api:     Backend (FastAPI)" },
+      { value: "ci", name: "ci:      CI/CD configuration" },
+      { value: "config", name: "config:  General configuration files" },
+      {
+        value: "config-eslint",
+        name: "config-eslint: ESLint shared configuration package",
+      },
+      {
+        value: "config-stylelint",
+        name: "config-stylelint: Stylelint shared configuration package",
+      },
+      {
+        value: "config-typescript",
+        name: "config-typescript: TypeScript shared configuration package",
+      },
+      { value: "deps", name: "deps:    Dependencies" },
+      { value: "docker", name: "docker:  Docker setup" },
+      { value: "graphql", name: "graphql: GraphQL schema" },
+      { value: "packages", name: "packages: General packages normalization" },
+      { value: "prettier", name: "prettier: Prettier configuration" },
+      { value: "root", name: "root:    Root-level configuration changes" },
+      { value: "shared", name: "shared:  Shared TypeScript types" },
+      { value: "ui", name: "ui:      Shared UI components" },
+      {
+        value: "vitest-presets",
+        name: "vitest-presets: Vitest presets package",
+      },
+      { value: "web", name: "web:     Frontend (Next.js)" },
+      { value: "worker", name: "worker:  Celery worker" },
+    ],
+    useEmoji: false,
+    allowEmptyScopes: true,
+    markBreakingChangeMode: true,
+  },
+};

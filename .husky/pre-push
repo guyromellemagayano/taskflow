@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+# Validate branch name before pushing
+pnpm dlx -- validate-branch-name

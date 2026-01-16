@@ -38,7 +38,6 @@
     "@commitlint/config-conventional": "catalog:",
     "@ianvs/prettier-plugin-sort-imports": "catalog:",
     "@taskflow/config-eslint": "workspace:*",
-    "@taskflow/config-stylelint": "workspace:*",
     "@taskflow/config-typescript": "workspace:*",
     "@taskflow/vitest-presets": "workspace:*",
     "commitizen": "catalog:",
@@ -51,6 +50,7 @@
     "prettier-plugin-tailwindcss": "catalog:",
     "sort-package-json": "catalog:",
     "stylelint": "catalog:",
+    "stylelint-config-standard-scss": "catalog:",
     "turbo": "catalog:",
     "typescript": "catalog:",
     "validate-branch-name": "catalog:"
