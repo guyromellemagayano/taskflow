@@ -8,9 +8,10 @@ Create Date: 2026-01-09 12:00:00.000000
 
 from typing import Sequence, Union
 
-from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
+
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "001_initial"
@@ -27,16 +28,16 @@ def upgrade() -> None:
         sa.Column("email", sa.String(255), nullable=False, unique=True),
         sa.Column("password_hash", sa.String(255), nullable=False),
         sa.Column(
-            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+            "createdAt", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
         ),
         sa.Column(
-            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+            "updatedAt", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
         ),
     )
 
     # Create indexes for users
     op.create_index("ix_users_email", "users", ["email"], unique=True)
-    op.create_index("ix_users_created_at", "users", ["created_at"])
+    op.create_index("ix_users_createdAt", "users", ["createdAt"])
 
     # Create tasks table
     op.create_table(
@@ -56,16 +57,16 @@ def upgrade() -> None:
             nullable=False,
             server_default="medium",
         ),
-        sa.Column("due_date", sa.Date(), nullable=True),
-        sa.Column("user_id", postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column("dueDate", sa.Date(), nullable=True),
+        sa.Column("userId", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column(
-            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+            "createdAt", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
         ),
         sa.Column(
-            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+            "updatedAt", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
         ),
         sa.ForeignKeyConstraint(
-            ["user_id"],
+            ["userId"],
             ["users.id"],
         ),
     )
@@ -73,24 +74,24 @@ def upgrade() -> None:
     # Create indexes for tasks
     op.create_index("ix_tasks_status", "tasks", ["status"])
     op.create_index("ix_tasks_priority", "tasks", ["priority"])
-    op.create_index("ix_tasks_due_date", "tasks", ["due_date"])
-    op.create_index("ix_tasks_user_id", "tasks", ["user_id"])
-    op.create_index("ix_tasks_created_at", "tasks", ["created_at"])
+    op.create_index("ix_tasks_dueDate", "tasks", ["dueDate"])
+    op.create_index("ix_tasks_userId", "tasks", ["userId"])
+    op.create_index("ix_tasks_createdAt", "tasks", ["createdAt"])
 
     # Create composite indexes for common queries
-    op.create_index("idx_user_status", "tasks", ["user_id", "status"])
-    op.create_index("idx_user_due_date", "tasks", ["user_id", "due_date"])
-    op.create_index("idx_user_created", "tasks", ["user_id", "created_at"])
+    op.create_index("idx_user_status", "tasks", ["userId", "status"])
+    op.create_index("idx_user_dueDate", "tasks", ["userId", "dueDate"])
+    op.create_index("idx_user_created", "tasks", ["userId", "createdAt"])
 
 
 def downgrade() -> None:
     # Drop indexes first
     op.drop_index("idx_user_created", table_name="tasks")
-    op.drop_index("idx_user_due_date", table_name="tasks")
+    op.drop_index("idx_user_dueDate", table_name="tasks")
     op.drop_index("idx_user_status", table_name="tasks")
-    op.drop_index("ix_tasks_created_at", table_name="tasks")
-    op.drop_index("ix_tasks_user_id", table_name="tasks")
-    op.drop_index("ix_tasks_due_date", table_name="tasks")
+    op.drop_index("ix_tasks_createdAt", table_name="tasks")
+    op.drop_index("ix_tasks_userId", table_name="tasks")
+    op.drop_index("ix_tasks_dueDate", table_name="tasks")
     op.drop_index("ix_tasks_priority", table_name="tasks")
     op.drop_index("ix_tasks_status", table_name="tasks")
 
