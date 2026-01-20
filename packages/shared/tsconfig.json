@@ -1,5 +1,5 @@
 {
-  "extends": "../../tsconfig.json",
+  "extends": "@taskflow/config-typescript/src/react-library.json",
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src"

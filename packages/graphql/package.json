@@ -22,10 +22,13 @@
     "lint:fix": "eslint . --fix",
     "type-check": "tsc --noEmit"
   },
+  "dependencies": {},
   "devDependencies": {
     "@graphql-codegen/cli": "catalog:",
     "@graphql-codegen/client-preset": "catalog:",
     "graphql": "catalog:",
     "typescript": "catalog:"
-  }
+  },
+  "peerDependencies": {},
+  "optionalDependencies": {}
 }

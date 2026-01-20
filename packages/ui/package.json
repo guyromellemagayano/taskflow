@@ -37,5 +37,6 @@
   "peerDependencies": {
     "react": "catalog:",
     "react-dom": "catalog:"
-  }
+  },
+  "optionalDependencies": {}
 }

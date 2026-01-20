@@ -53,6 +53,7 @@
     "test:ui": "vitest --ui",
     "type-check": "tsc --noEmit"
   },
+  "dependencies": {},
   "devDependencies": {
     "@testing-library/jest-dom": "catalog:",
     "@testing-library/react": "catalog:",
@@ -66,5 +67,6 @@
   "peerDependencies": {
     "react": "catalog:",
     "react-dom": "catalog:"
-  }
+  },
+  "optionalDependencies": {}
 }

@@ -3,12 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "Shared types and utilities for TaskFlow",
-  "keywords": [
-    "taskflow",
-    "shared",
-    "types",
-    "utilities"
-  ],
+  "keywords": ["taskflow", "shared", "types", "utilities"],
   "homepage": "https://github.com/guyromellemagayano/taskflow/tree/main/packages/shared",
   "bugs": {
     "url": "https://github.com/guyromellemagayano/taskflow/issues"
@@ -42,5 +37,7 @@
   },
   "devDependencies": {
     "typescript": "catalog:"
-  }
+  },
+  "peerDependencies": {},
+  "optionalDependencies": {}
 }

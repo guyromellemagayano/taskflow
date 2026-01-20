@@ -1,6 +1,10 @@
 import { defineConfig } from "eslint/config";
 
+import { baseEslintConfig } from "@taskflow/config-eslint";
+
+/** @type {import("eslint").Linter.Config} */
 export default defineConfig([
+  ...baseEslintConfig,
   {
     ignores: [
       "**/dist/**",
@@ -8,27 +12,5 @@ export default defineConfig([
       "**/*.config.*",
       "**/tsconfig*.json",
     ],
-  },
-  {
-    files: ["**/*.{js,jsx,ts,tsx}"],
-    languageOptions: {
-      ecmaVersion: "latest",
-      sourceType: "module",
-    },
-    rules: {
-      // Basic rules - TypeScript compiler handles type checking
-      "no-unused-vars": "off", // TypeScript handles this
-      "no-console": "warn",
-      "prefer-const": "error",
-      // Enforce function declarations for all exported functions
-      // Arrow functions are allowed for callbacks/inline functions
-      "func-style": [
-        "error",
-        "declaration",
-        {
-          allowArrowFunctions: true,
-        },
-      ],
-    },
   },
 ]);

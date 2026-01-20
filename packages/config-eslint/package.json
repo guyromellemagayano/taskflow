@@ -42,7 +42,6 @@
     "eslint-import-resolver-typescript": "catalog:",
     "eslint-plugin-import": "catalog:",
     "eslint-plugin-jest-dom": "catalog:",
-    "eslint-plugin-jsx-a11y": "catalog:",
     "eslint-plugin-only-warn": "catalog:",
     "eslint-plugin-prettier": "catalog:",
     "eslint-plugin-react": "catalog:",
@@ -58,5 +57,7 @@
   "devDependencies": {
     "@types/react": "catalog:",
     "typescript": "catalog:"
-  }
+  },
+  "peerDependencies": {},
+  "optionalDependencies": {}
 }
