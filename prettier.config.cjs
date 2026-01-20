@@ -10,12 +10,29 @@ module.exports = {
     "prettier-plugin-packagejson",
     "prettier-plugin-tailwindcss",
   ],
-  parser: "json-stringify",
   overrides: [
     {
       files: ["**/*.{mjs,cjs,mts,cts,js,ts,jsx,tsx}"],
       options: {
         parser: "typescript",
+      },
+    },
+    {
+      files: ["**/*.{json,jsonc}"],
+      options: {
+        parser: "json",
+      },
+    },
+    {
+      files: ["**/*.{yaml,yml}"],
+      options: {
+        parser: "yaml",
+      },
+    },
+    {
+      files: ["**/*.md"],
+      options: {
+        parser: "markdown",
       },
     },
     {
