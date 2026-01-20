@@ -1,0 +1,48 @@
+# Node modules and lock files
+node_modules/
+pnpm-lock.yaml
+.pnp/
+.pnp.js
+
+# pnpm cache directories
+.pnpm-store/
+
+# Ruff cache
+.ruff_cache/
+
+# Build outputs
+dist/
+dist-ssr/
+build/
+.next/
+out/
+coverage/
+logs/
+dist/
+
+# Turbo/monorepo cache
+.turbo/
+.cache/
+
+# OS/system/editor folders
+.idea/
+
+# OS/system/editor files
+.DS_Store
+.env
+.env.*
+*.log
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Vercel
+.vercel/
+
+# Old files/folders
+*.old
+*-old/
+
+# Editor files/folders
+*.code-workspace
+.vscode/
