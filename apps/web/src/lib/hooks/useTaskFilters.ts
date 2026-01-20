@@ -1,0 +1,49 @@
+/**
+ * @file useTaskFilters.ts
+ * @author Guy Romelle Magayano
+ * @description Custom hook for parsing task filters from URL search params
+ */
+
+import { useMemo } from "react";
+
+import { useSearchParams } from "next/navigation";
+
+import type { TaskFilters } from "@web/lib/graphql/tasks";
+
+interface UseTaskFiltersReturn {
+  filters: TaskFilters;
+  sortBy: string;
+  sortOrder: "asc" | "desc";
+}
+
+const DEFAULT_SORT_BY = "createdAt";
+const DEFAULT_SORT_ORDER = "desc" as const;
+
+// Custom hook for parsing task filters from URL search params
+export function useTaskFilters(): UseTaskFiltersReturn {
+  const searchParams = useSearchParams();
+
+  // Get filter/sort params from URL
+  const statusFilter = searchParams.get("status") || undefined;
+  const priorityFilter = searchParams.get("priority") || undefined;
+  const searchQuery = searchParams.get("search") || undefined;
+  const sortBy = searchParams.get("sortBy") || DEFAULT_SORT_BY;
+  const sortOrder =
+    (searchParams.get("sortOrder") as "asc" | "desc") || DEFAULT_SORT_ORDER;
+
+  // Memoize filters object to avoid recreation on every render
+  const filters: TaskFilters = useMemo(
+    () => ({
+      status: statusFilter as TaskFilters["status"],
+      priority: priorityFilter as TaskFilters["priority"],
+      search: searchQuery,
+    }),
+    [statusFilter, priorityFilter, searchQuery]
+  );
+
+  return {
+    filters,
+    sortBy,
+    sortOrder,
+  };
+}
