@@ -81,13 +81,13 @@ class GraphQLContext(BaseContext):
             from app.services.user_service import get_user_by_id
 
             payload = verify_token_safe(token)
-            user_id_str = payload.get("sub")
-            if not user_id_str:
+            userId_str = payload.get("sub")
+            if not userId_str:
                 return None
 
-            user_id = UUID(user_id_str)
+            userId = UUID(userId_str)
             db = await self.get_db()
-            self._user = await get_user_by_id(db, user_id)
+            self._user = await get_user_by_id(db, userId)
             return self._user
         except Exception as e:
             # Log authentication errors for debugging but don't expose details

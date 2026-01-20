@@ -49,14 +49,14 @@ async def login(
     # Verify password
     if not verify_password(credentials.password, user.password_hash):
         logger.warning(
-            "Login attempt with incorrect password", email=credentials.email, user_id=str(user.id)
+            "Login attempt with incorrect password", email=credentials.email, userId=str(user.id)
         )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
         )
 
-    logger.info("User logged in successfully", user_id=str(user.id), email=credentials.email)
+    logger.info("User logged in successfully", userId=str(user.id), email=credentials.email)
 
     # Create tokens
     token_data = {
@@ -130,24 +130,24 @@ async def refresh_token_endpoint(
     payload = verify_token(request_data.refresh_token, token_type="refresh")
 
     # Validate payload has required fields
-    user_id = payload.get("sub")
+    userId = payload.get("sub")
     email = payload.get("email")
 
-    if not user_id or not email:
+    if not userId or not email:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token payload",
         )
 
     # Check if token is revoked
-    if await is_token_revoked(user_id, request_data.refresh_token):
+    if await is_token_revoked(userId, request_data.refresh_token):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token has been revoked",
         )
 
     # Verify token exists in Redis
-    stored_token = await get_refresh_token(user_id, request_data.refresh_token)
+    stored_token = await get_refresh_token(userId, request_data.refresh_token)
     if not stored_token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -155,11 +155,11 @@ async def refresh_token_endpoint(
         )
 
     # Token rotation: Delete old refresh token
-    await delete_refresh_token(user_id, request_data.refresh_token)
+    await delete_refresh_token(userId, request_data.refresh_token)
 
     # Create new tokens
     token_data = {
-        "sub": user_id,
+        "sub": userId,
         "email": email,
     }
 
@@ -168,7 +168,7 @@ async def refresh_token_endpoint(
 
     # Store new refresh token in Redis
     await store_refresh_token(
-        user_id,
+        userId,
         new_refresh_token,
         expires_in_days=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS,
     )
@@ -217,15 +217,15 @@ async def logout(
             detail="Refresh token is required",
         )
 
-    # Verify token to get user_id
+    # Verify token to get userId
     try:
         payload = verify_token(request_data.refresh_token, token_type="refresh")
-        user_id = payload.get("sub")
+        userId = payload.get("sub")
 
-        if user_id:
+        if userId:
             # Revoke the refresh token
             await revoke_refresh_token(
-                user_id,
+                userId,
                 request_data.refresh_token,
                 expires_in_days=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS,
             )

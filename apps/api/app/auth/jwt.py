@@ -93,12 +93,12 @@ def verify_token_safe(token: str, token_type: str = "access") -> dict:
         raise AuthenticationError("Could not validate credentials")
 
 
-async def create_auth_tokens_for_user(user_id: str, email: str) -> tuple[str, str]:
+async def create_auth_tokens_for_user(userId: str, email: str) -> tuple[str, str]:
     """
     Create access and refresh tokens for a user and store refresh token in Redis
 
     Args:
-        user_id: User ID (UUID string)
+        userId: User ID (UUID string)
         email: User email
 
     Returns:
@@ -108,7 +108,7 @@ async def create_auth_tokens_for_user(user_id: str, email: str) -> tuple[str, st
     from app.core.config import settings
 
     token_data = {
-        "sub": user_id,
+        "sub": userId,
         "email": email,
     }
 
@@ -117,7 +117,7 @@ async def create_auth_tokens_for_user(user_id: str, email: str) -> tuple[str, st
 
     # Store refresh token in Redis
     await store_refresh_token(
-        user_id,
+        userId,
         refresh_token,
         expires_in_days=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS,
     )

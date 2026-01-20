@@ -31,15 +31,15 @@ async def get_current_user_dependency(
     payload = verify_token(token)
 
     # Extract user ID from token
-    user_id_str = payload.get("sub")
-    if not user_id_str:
+    userId_str = payload.get("sub")
+    if not userId_str:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token: missing user ID",
         )
 
     try:
-        user_id = UUID(user_id_str)
+        userId = UUID(userId_str)
     except ValueError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -47,7 +47,7 @@ async def get_current_user_dependency(
         )
 
     # Fetch user from database
-    user = await get_user_by_id(db, user_id)
+    user = await get_user_by_id(db, userId)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

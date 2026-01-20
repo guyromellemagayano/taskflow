@@ -47,18 +47,18 @@ async def get_user_by_email(db: AsyncSession, email: str) -> Optional[User]:
     return user
 
 
-async def get_user_by_id(db: AsyncSession, user_id: UUID) -> Optional[User]:
+async def get_user_by_id(db: AsyncSession, userId: UUID) -> Optional[User]:
     """
     Get user by ID
 
     Args:
         db: Database session
-        user_id: User UUID
+        userId: User UUID
 
     Returns:
         User object if found, None otherwise
     """
-    stmt = select(User).where(User.id == user_id)
+    stmt = select(User).where(User.id == userId)
     result = await db.execute(stmt)
     user = result.scalar_one_or_none()
     return user
@@ -93,7 +93,7 @@ async def create_user(db: AsyncSession, email: str, password: str) -> User:
     await db.commit()
     await db.refresh(user)
 
-    logger.info("User created", user_id=str(user.id), email=email)
+    logger.info("User created", userId=str(user.id), email=email)
     return user
 
 
@@ -111,19 +111,19 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
 
-async def update_user(db: AsyncSession, user_id: UUID, **kwargs) -> Optional[User]:
+async def update_user(db: AsyncSession, userId: UUID, **kwargs) -> Optional[User]:
     """
     Update user information
 
     Args:
         db: Database session
-        user_id: User UUID
+        userId: User UUID
         **kwargs: Fields to update (email, password_hash, etc.)
 
     Returns:
         Updated User object if found, None otherwise
     """
-    user = await get_user_by_id(db, user_id)
+    user = await get_user_by_id(db, userId)
     if not user:
         return None
 
@@ -135,17 +135,17 @@ async def update_user(db: AsyncSession, user_id: UUID, **kwargs) -> Optional[Use
     await db.commit()
     await db.refresh(user)
 
-    logger.info("User updated", user_id=str(user_id), fields=list(kwargs.keys()))
+    logger.info("User updated", userId=str(userId), fields=list(kwargs.keys()))
     return user
 
 
-async def change_password(db: AsyncSession, user_id: UUID, new_password: str) -> bool:
+async def change_password(db: AsyncSession, userId: UUID, new_password: str) -> bool:
     """
     Change user password
 
     Args:
         db: Database session
-        user_id: User UUID
+        userId: User UUID
         new_password: New plain text password (will be hashed)
 
     Returns:
@@ -153,10 +153,10 @@ async def change_password(db: AsyncSession, user_id: UUID, new_password: str) ->
     """
     # Hash password (Argon2 supports passwords up to 2^32-1 bytes)
     password_hash = pwd_context.hash(new_password)
-    user = await update_user(db, user_id, password_hash=password_hash)
+    user = await update_user(db, userId, password_hash=password_hash)
 
     if user:
-        logger.info("Password changed", user_id=str(user_id))
+        logger.info("Password changed", userId=str(userId))
         return True
 
     return False

@@ -1,6 +1,6 @@
 """Strawberry GraphQL schema"""
 
-from datetime import UTC, date, datetime
+from datetime import date, datetime
 from typing import List, Optional
 
 import strawberry
@@ -18,7 +18,7 @@ class User:
 
     id: str
     email: str
-    created_at: datetime
+    createdAt: datetime
 
     @classmethod
     def from_model(cls, user_model):
@@ -26,7 +26,7 @@ class User:
         return cls(
             id=str(user_model.id),
             email=user_model.email,
-            created_at=user_model.created_at,
+            createdAt=user_model.createdAt,
         )
 
 
@@ -39,10 +39,70 @@ class Task:
     description: Optional[str]
     status: str
     priority: str
-    due_date: Optional[date]
-    user_id: str
-    created_at: datetime
-    updated_at: datetime
+    dueDate: Optional[date]
+    userId: str
+    createdAt: datetime
+    updatedAt: datetime
+
+    @classmethod
+    def from_model(cls, task_model):
+        """Create Task GraphQL type from SQLAlchemy model"""
+        return cls(
+            id=str(task_model.id),
+            title=task_model.title,
+            description=task_model.description,
+            status=task_model.status.value,
+            priority=task_model.priority.value,
+            dueDate=task_model.dueDate,
+            userId=str(task_model.userId),
+            createdAt=task_model.createdAt,
+            updatedAt=task_model.updatedAt,
+        )
+
+
+@strawberry.type
+class TasksConnection:
+    """Paginated tasks response with metadata"""
+
+    tasks: List[Task]
+    total: int
+    limit: int
+    offset: int
+    has_more: bool
+
+
+@strawberry.input
+class CreateTaskInput:
+    """Input for creating a task"""
+
+    title: str
+    description: Optional[str] = None
+    status: Optional[str] = None  # Defaults to "todo"
+    priority: Optional[str] = None  # Defaults to "medium"
+    dueDate: Optional[date] = None
+
+
+@strawberry.input
+class UpdateTaskInput:
+    """Input for updating a task"""
+
+    id: str
+    title: Optional[str] = None
+    description: Optional[str] = None
+    status: Optional[str] = None
+    priority: Optional[str] = None
+    dueDate: Optional[date] = None
+
+
+@strawberry.input
+class TaskFilters:
+    """Filters for task queries"""
+
+    status: Optional[str] = None
+    priority: Optional[str] = None
+    dueDate_from: Optional[date] = None
+    dueDate_to: Optional[date] = None
+    search: Optional[str] = None
 
 
 @strawberry.type
@@ -50,23 +110,83 @@ class Query:
     """GraphQL Query type"""
 
     @strawberry.field
-    async def tasks(self) -> List[Task]:
-        """Get all tasks (Phase 1: returns empty list)"""
-        # Phase 1: Stub - returns empty list
-        # Phase 2: Will query database
-        return []
+    async def tasks(
+        self,
+        info: Info[GraphQLContext, None],
+        filters: Optional[TaskFilters] = None,
+        sort_by: str = "createdAt",
+        sort_order: str = "desc",
+        limit: int = 50,
+        offset: int = 0,
+    ) -> List[Task]:
+        """Get tasks with filtering, sorting, and pagination"""
+
+        from app.models.task import TaskPriority, TaskStatus
+        from app.services.task_service import get_tasks
+
+        # Require authentication
+        user = await info.context.require_user()
+
+        # Parse filters
+        status = None
+        if filters and filters.status:
+            try:
+                status = TaskStatus(filters.status)
+            except ValueError:
+                raise ValueError(f"Invalid status: {filters.status}")
+
+        priority = None
+        if filters and filters.priority:
+            try:
+                priority = TaskPriority(filters.priority)
+            except ValueError:
+                raise ValueError(f"Invalid priority: {filters.priority}")
+
+        # Get tasks
+        db = await info.context.get_db()
+        tasks = await get_tasks(
+            db=db,
+            userId=user.id,
+            status=status,
+            priority=priority,
+            dueDate_from=filters.dueDate_from if filters else None,
+            dueDate_to=filters.dueDate_to if filters else None,
+            search=filters.search if filters else None,
+            sort_by=sort_by,
+            sort_order=sort_order,
+            limit=min(limit, 100),  # Cap at 100
+            offset=max(offset, 0),
+        )
+
+        return [Task.from_model(task) for task in tasks]
 
     @strawberry.field
-    async def task(self, id: str) -> Optional[Task]:
-        """Get task by ID (Phase 1: returns None)"""
-        # Phase 1: Stub - returns None
-        # Phase 2: Will query database
+    async def task(self, id: str, info: Info[GraphQLContext, None]) -> Optional[Task]:
+        """Get task by ID"""
+        from uuid import UUID
+
+        from app.services.task_service import get_task_by_id
+
+        # Require authentication
+        user = await info.context.require_user()
 
         # Validate input
         if not id or not id.strip():
             return None
 
-        return None
+        try:
+            task_id = UUID(id)
+        except ValueError:
+            return None
+
+        # Get task (with user authorization check)
+        db = await info.context.get_db()
+        task = await get_task_by_id(db, task_id, userId=user.id)
+
+        if not task:
+            return None
+
+        return Task.from_model(task)
 
     @strawberry.field
     async def me(self, info: Info[GraphQLContext, None]) -> Optional[User]:
@@ -84,12 +204,12 @@ class Query:
         from app.services.user_service import get_user_by_id
 
         try:
-            user_id = UUID(id)
+            userId = UUID(id)
         except ValueError:
             return None
 
         db = await info.context.get_db()
-        user = await get_user_by_id(db, user_id)
+        user = await get_user_by_id(db, userId)
         if not user:
             return None
 
@@ -107,7 +227,7 @@ class Query:
 
         # Query database directly
         db = await info.context.get_db()
-        stmt = select(UserModel).order_by(UserModel.created_at.desc())
+        stmt = select(UserModel).order_by(UserModel.createdAt.desc())
         result = await db.execute(stmt)
         users = result.scalars().all()
 
@@ -151,83 +271,122 @@ class Mutation:
     """GraphQL Mutation type"""
 
     @strawberry.mutation
-    async def create_task(
-        self,
-        title: str,
-        description: Optional[str] = None,
-        priority: str = "medium",
-        due_date: Optional[date] = None,
-    ) -> Task:
-        """Create a new task (Phase 1: returns stub)"""
-        # Phase 1: Stub - returns mock task
-        # Phase 2: Will create in database
+    async def create_task(self, input: CreateTaskInput, info: Info[GraphQLContext, None]) -> Task:
+        """Create a new task"""
+        from app.models.task import TaskPriority, TaskStatus
+        from app.services.task_service import create_task
 
-        # Validate input
-        if not title or not title.strip():
-            raise ValueError("Title is required")
+        # Require authentication
+        user = await info.context.require_user()
 
-        # Validate priority
-        valid_priorities = ["low", "medium", "high"]
-        if priority not in valid_priorities:
-            raise ValueError(f"Priority must be one of: {', '.join(valid_priorities)}")
+        # Parse status and priority
+        status = TaskStatus.TODO
+        if input.status:
+            try:
+                status = TaskStatus(input.status)
+            except ValueError:
+                raise ValueError(f"Invalid status: {input.status}")
 
-        import uuid
-        from datetime import datetime
+        priority = TaskPriority.MEDIUM
+        if input.priority:
+            try:
+                priority = TaskPriority(input.priority)
+            except ValueError:
+                raise ValueError(f"Invalid priority: {input.priority}")
 
-        return Task(
-            id=str(uuid.uuid4()),
-            title=title.strip(),
-            description=description.strip() if description else None,
-            status="todo",
+        # Create task
+        db = await info.context.get_db()
+        task = await create_task(
+            db=db,
+            userId=user.id,
+            title=input.title,
+            description=input.description,
+            status=status,
             priority=priority,
-            due_date=due_date,
-            user_id=str(uuid.uuid4()),  # Phase 2: Will use authenticated user
-            created_at=datetime.now(UTC),
-            updated_at=datetime.now(UTC),
+            dueDate=input.dueDate,
         )
+
+        return Task.from_model(task)
 
     @strawberry.mutation
     async def update_task(
-        self,
-        id: str,
-        title: Optional[str] = None,
-        description: Optional[str] = None,
-        status: Optional[str] = None,
-        priority: Optional[str] = None,
+        self, input: UpdateTaskInput, info: Info[GraphQLContext, None]
     ) -> Optional[Task]:
-        """Update a task (Phase 1: returns None)"""
-        # Phase 1: Stub - returns None
-        # Phase 2: Will update in database
+        """Update a task"""
+        from uuid import UUID
+
+        from app.models.task import TaskPriority, TaskStatus
+        from app.services.task_service import update_task
+
+        # Require authentication
+        user = await info.context.require_user()
 
         # Validate input
-        if not id or not id.strip():
+        if not input.id or not input.id.strip():
             raise ValueError("Task ID is required")
 
-        # Validate status if provided
-        if status is not None:
-            valid_statuses = ["todo", "in_progress", "done"]
-            if status not in valid_statuses:
-                raise ValueError(f"Status must be one of: {', '.join(valid_statuses)}")
+        try:
+            task_id = UUID(input.id)
+        except ValueError:
+            raise ValueError("Invalid task ID format")
 
-        # Validate priority if provided
-        if priority is not None:
-            valid_priorities = ["low", "medium", "high"]
-            if priority not in valid_priorities:
-                raise ValueError(f"Priority must be one of: {', '.join(valid_priorities)}")
+        # Parse status and priority if provided
+        status = None
+        if input.status:
+            try:
+                status = TaskStatus(input.status)
+            except ValueError:
+                raise ValueError(f"Invalid status: {input.status}")
 
-        return None
+        priority = None
+        if input.priority:
+            try:
+                priority = TaskPriority(input.priority)
+            except ValueError:
+                raise ValueError(f"Invalid priority: {input.priority}")
+
+        # Update task
+        db = await info.context.get_db()
+        task = await update_task(
+            db=db,
+            task_id=task_id,
+            userId=user.id,
+            title=input.title,
+            description=input.description,
+            status=status,
+            priority=priority,
+            dueDate=input.dueDate,
+        )
+
+        if not task:
+            return None
+
+        return Task.from_model(task)
 
     @strawberry.mutation
-    async def delete_task(self, id: str) -> bool:
-        """Delete a task (Phase 1: returns False)"""
-        # Phase 1: Stub - returns False
-        # Phase 2: Will delete from database
+    async def delete_task(self, id: str, info: Info[GraphQLContext, None]) -> bool:
+        """Delete a task"""
+        from uuid import UUID
+
+        from app.services.task_service import delete_task
+
+        # Require authentication
+        user = await info.context.require_user()
 
         # Validate input
         if not id or not id.strip():
             raise ValueError("Task ID is required")
 
-        return False
+        try:
+            task_id = UUID(id)
+        except ValueError:
+            raise ValueError("Invalid task ID format")
+
+        # Delete task
+        db = await info.context.get_db()
+        deleted = await delete_task(db, task_id, userId=user.id)
+
+        return deleted
 
     @strawberry.mutation
     async def register(
@@ -245,9 +404,11 @@ class Mutation:
         logger = structlog.get_logger(__name__)
 
         # Validate email format
+        from app.core.exceptions import ValidationError
+
         if not validate_email(input.email):
             logger.warning("Registration attempt with invalid email", email=input.email)
-            raise ValueError("Invalid email format")
+            raise ValidationError("Invalid email format")
 
         # Validate password strength
         is_valid, errors = validate_password(input.password)
@@ -255,19 +416,19 @@ class Mutation:
             logger.warning(
                 "Registration attempt with weak password", email=input.email, errors=errors
             )
-            raise ValueError("; ".join(errors))
+            raise ValidationError("; ".join(errors))
 
         # Create user
         db = await info.context.get_db()
         try:
             user = await create_user(db, input.email, input.password)
-            logger.info("User registered successfully", user_id=str(user.id), email=input.email)
+            logger.info("User registered successfully", userId=str(user.id), email=input.email)
         except ValueError as e:
-            # User already exists
-            logger.warning(
-                "Registration attempt with existing email", email=input.email, error=str(e)
-            )
-            raise
+            # User already exists or other validation error
+            from app.core.exceptions import ValidationError
+
+            logger.warning("Registration attempt failed", email=input.email, error=str(e))
+            raise ValidationError(str(e)) from e
 
         # Create tokens and store refresh token
 
@@ -303,11 +464,11 @@ class Mutation:
         # Verify password
         if not verify_password(input.password, user.password_hash):
             logger.warning(
-                "Login attempt with incorrect password", email=input.email, user_id=str(user.id)
+                "Login attempt with incorrect password", email=input.email, userId=str(user.id)
             )
             raise AuthenticationError("Incorrect email or password")
 
-        logger.info("User logged in successfully", user_id=str(user.id), email=input.email)
+        logger.info("User logged in successfully", userId=str(user.id), email=input.email)
 
         # Create tokens and store refresh token
         from app.auth.jwt import create_auth_tokens_for_user
@@ -351,40 +512,40 @@ class Mutation:
         payload = verify_token(input.refresh_token, token_type="refresh")
 
         # Validate payload
-        user_id_str = payload.get("sub")
+        userId_str = payload.get("sub")
         email = payload.get("email")
 
-        if not user_id_str or not email:
+        if not userId_str or not email:
             raise AuthenticationError("Invalid token payload")
 
         # Check if token is revoked
-        if await is_token_revoked(user_id_str, input.refresh_token):
-            logger.warning("Refresh token revoked", user_id=user_id_str)
+        if await is_token_revoked(userId_str, input.refresh_token):
+            logger.warning("Refresh token revoked", userId=userId_str)
             raise AuthenticationError("Token has been revoked")
 
         # Verify token exists in Redis
-        stored_token = await get_refresh_token(user_id_str, input.refresh_token)
+        stored_token = await get_refresh_token(userId_str, input.refresh_token)
         if not stored_token:
-            logger.warning("Invalid refresh token", user_id=user_id_str)
+            logger.warning("Invalid refresh token", userId=userId_str)
             raise AuthenticationError("Invalid refresh token")
 
         # Token rotation: Delete old refresh token
-        await delete_refresh_token(user_id_str, input.refresh_token)
+        await delete_refresh_token(userId_str, input.refresh_token)
 
         # Get user from database
-        user_id = UUID(user_id_str)
+        userId = UUID(userId_str)
         db = await info.context.get_db()
-        user = await get_user_by_id(db, user_id)
+        user = await get_user_by_id(db, userId)
         if not user:
-            logger.warning("User not found during token refresh", user_id=user_id_str)
+            logger.warning("User not found during token refresh", userId=userId_str)
             raise AuthenticationError("User not found")
 
-        logger.info("Token refreshed successfully", user_id=user_id_str, email=email)
+        logger.info("Token refreshed successfully", userId=userId_str, email=email)
 
         # Create new tokens and store refresh token
         from app.auth.jwt import create_auth_tokens_for_user
 
-        access_token, new_refresh_token = await create_auth_tokens_for_user(user_id_str, email)
+        access_token, new_refresh_token = await create_auth_tokens_for_user(userId_str, email)
 
         return AuthPayload(
             access_token=access_token,
@@ -406,15 +567,15 @@ class Mutation:
         if not input.refresh_token:
             return False
 
-        # Verify token to get user_id
+        # Verify token to get userId
         try:
             payload = verify_token_safe(input.refresh_token, token_type="refresh")
-            user_id = payload.get("sub")
+            userId = payload.get("sub")
 
-            if user_id:
+            if userId:
                 # Revoke the refresh token
                 await revoke_refresh_token(
-                    user_id,
+                    userId,
                     input.refresh_token,
                     expires_in_days=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS,
                 )
