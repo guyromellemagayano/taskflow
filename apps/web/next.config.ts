@@ -1,9 +1,30 @@
+import bundleAnalyzer from "@next/bundle-analyzer";
 import type { NextConfig } from "next";
 
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === "true",
+});
+
 const nextConfig: NextConfig = {
-  /* config options here */
-  transpilePackages: ["@taskflow/shared"],
+  transpilePackages: ["@taskflow/shared", "@apollo/client"],
   output: "standalone",
+  logging: {
+    fetches: {
+      hmrRefreshes: true,
+    },
+  },
+  poweredByHeader: false,
+  reactCompiler: true,
+  experimental: {
+    optimizePackageImports: ["@tabler/icons-react"],
+  },
 };
 
-export default nextConfig;
+const bundleAnalyzerConfig = {
+  reactStrictMode: false,
+};
+
+export default withBundleAnalyzer({
+  ...nextConfig,
+  ...bundleAnalyzerConfig,
+});

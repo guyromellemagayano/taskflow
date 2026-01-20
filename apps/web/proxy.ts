@@ -1,8 +1,7 @@
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 
 /** Next.js proxy middleware for route protection and authentication */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 export function proxy(_request: NextRequest) {
   // Public routes that don't require authentication
   // Note: Currently all routes are allowed through
