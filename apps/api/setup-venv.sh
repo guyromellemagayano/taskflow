@@ -37,7 +37,7 @@ if [ -z "$PYTHON_CMD" ]; then
     echo "Please install Python 3.11, 3.12, or 3.13:"
     echo "  brew install python@3.13  # or python@3.12, python@3.11"
     echo ""
-    echo "Or use Docker mode instead: make install"
+    echo "Or use the canonical local runtime instead: ./scripts/devops/run-make.sh bootstrap"
     exit 1
 fi
 
