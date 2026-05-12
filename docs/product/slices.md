@@ -40,12 +40,12 @@ This document defines the release slices that describe TaskFlow's product and pl
 
 ## Slice 7: Product Docs Backfill And Status Normalization
 
-- Status: `In Progress`
+- Status: `Shipped`
 - Outcome: the product, checklist, slice, phase, and feature-spec docs reflect live repo truth and become the de-facto planning baseline from now on
 - Primary surfaces: `docs/product/*`, `docs/planning/*`
 
 ## Slice 8: Contract Truth Hardening
 
-- Status: `Planned`
-- Outcome: schema, tests, worker depth, and package boundaries match the shipped product surface without known drift
-- Primary surfaces: Alembic migrations, SQLAlchemy models, `apps/web/e2e`, task UI tests, worker analytics, shared packages
+- Status: `In Progress`
+- Outcome: schema, dependency security, tests, worker depth, and package boundaries match the shipped product surface without known drift
+- Primary surfaces: Alembic migrations, SQLAlchemy models, dependency manifests, `apps/web/e2e`, task UI tests, worker analytics, shared packages

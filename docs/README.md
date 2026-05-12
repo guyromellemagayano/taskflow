@@ -27,3 +27,4 @@ For non-trivial work, read in this order:
 - [Frontend Architecture](./architecture/frontend.md): web-app and shared-package boundaries
 - [Backend Architecture](./architecture/backend.md): API, worker, and Python dependency rules
 - [Development Workflow](./development/workflow.md): day-to-day slice, validation, commit, and push workflow
+- [Dependency Security](./development/dependency-security.md): dependency-alert posture, mitigations, blocked upgrades, and audit commands

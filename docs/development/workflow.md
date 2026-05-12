@@ -7,6 +7,7 @@
 3. Use `./scripts/devops/run-make.sh up` or `dev` for the local runtime.
 4. Validate narrowly first.
 5. Run `./scripts/devops/run-make.sh validate` when shared behavior is touched.
+6. When dependency manifests or lockfiles change, confirm the current security posture in `docs/development/dependency-security.md` and re-run the audit commands recorded there.
 
 ## Release Slice Flow
 

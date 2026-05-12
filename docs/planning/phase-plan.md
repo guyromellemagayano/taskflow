@@ -13,8 +13,8 @@ This file owns implementation order and current status for TaskFlow's canonical 
 | Phase 3 | Shipped      | Task CRUD and the authenticated list workspace exist as the main product surface.                                                       |
 | Phase 4 | Partial      | Task UX hardening and background analytics have started, but pagination truth, analytics depth, and test coverage are not yet complete. |
 | Phase 5 | Shipped      | The monorepo workflow overhaul established the canonical runtime, planning, validation, grouped-commit, and signed-delivery contract.   |
-| Phase 6 | Implementing | Product features, checklist, slices, phase status, and historical foundation specs are being normalized from live repo truth.           |
-| Phase 7 | Planned      | Data contracts, test depth, worker implementation, and remaining package truth issues will be hardened under the new workflow contract. |
+| Phase 6 | Shipped      | Product features, checklist, slices, phase status, and historical foundation specs were normalized from live repo truth.                |
+| Phase 7 | Implementing | Data contracts, dependency security, test depth, worker implementation, and remaining package truth issues are being hardened.          |
 
 ## Phase Details
 
@@ -44,11 +44,11 @@ This file owns implementation order and current status for TaskFlow's canonical 
 
 ### Phase 7: Contract Truth Hardening
 
-- Core focus: migration-model alignment, real web coverage, task detail and pagination truth, worker analytics implementation, and package-boundary hardening
+- Core focus: migration-model alignment, dependency vulnerability hardening, real web coverage, task detail and pagination truth, worker analytics implementation, and package-boundary hardening
 
 ## Sequencing Constraints
 
 - Phases 1 through 4 define the reconstructed product build order implied by the live repo and should be treated as the baseline product history from now on.
 - Phase 5 establishes the workflow contract and must remain the gate for new non-trivial work.
 - Phase 6 makes the backfilled docs authoritative so later slices do not drift from repo truth again.
-- Phase 7 must use the current docs-first workflow rather than inventing one-off exceptions.
+- Phase 7 must use the current docs-first workflow rather than inventing one-off exceptions, including for dependency hardening work.

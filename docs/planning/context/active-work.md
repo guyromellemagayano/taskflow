@@ -7,21 +7,21 @@ This file is the live execution control surface for current delivery work.
 ## Active Initiative
 
 - Status: `In Progress`
-- Current active feature spec: [`../feature-specs/cross-cutting/product-docs-backfill.md`](../feature-specs/cross-cutting/product-docs-backfill.md)
-- Current slice: Product docs backfill and status normalization
-- Current scope: establish the canonical product surface, module checklist, reconstructed slice and phase order, and historical foundation specs from live repo truth so the docs become the default planning baseline from now on
+- Current active feature spec: [`../feature-specs/cross-cutting/dependency-vulnerability-hardening.md`](../feature-specs/cross-cutting/dependency-vulnerability-hardening.md)
+- Current slice: Contract truth hardening
+- Current scope: reduce actionable default-branch dependency vulnerabilities, harden the live web attack surface, document blocked upstream advisory paths, and keep the canonical validation contract green
 
 ## Most Recently Completed Initiative
 
-- Initiative: Monorepo foundation overhaul
-- Feature spec: [`../feature-specs/cross-cutting/monorepo-foundation-overhaul.md`](../feature-specs/cross-cutting/monorepo-foundation-overhaul.md)
-- Outcome: The runtime, planning, validation, grouped-commit, and signed-delivery contract became the default repo workflow
+- Initiative: Product docs backfill and status normalization
+- Feature spec: [`../feature-specs/cross-cutting/product-docs-backfill.md`](../feature-specs/cross-cutting/product-docs-backfill.md)
+- Outcome: the product, planning, and historical foundation docs were backfilled from live repo truth and became the default planning baseline
 
 ## Next Approved Candidate Specs
 
 - Migration and model alignment
 - Task quality and browser coverage hardening
-- Package and contract truth hardening
+- Package and contract truth hardening beyond dependency alerts
 
 ## Latest Validation
 
@@ -29,4 +29,5 @@ This file is the live execution control surface for current delivery work.
 
 ## Blockers
 
-- None recorded yet under the new workflow contract
+- Patched `next` releases recommended by `pnpm audit` were not installable from the registry view available during the current hardening pass
+- Patched GraphQL codegen releases recommended by `pnpm audit` were not installable from the registry view available during the current hardening pass
