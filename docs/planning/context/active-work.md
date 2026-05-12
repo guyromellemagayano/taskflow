@@ -6,22 +6,22 @@ This file is the live execution control surface for current delivery work.
 
 ## Active Initiative
 
-- Status: `In Progress`
-- Current active feature spec: [`../feature-specs/cross-cutting/dependency-vulnerability-hardening.md`](../feature-specs/cross-cutting/dependency-vulnerability-hardening.md)
+- Status: `Completed`
+- Current active feature spec: [`../feature-specs/cross-cutting/alembic-and-model-alignment.md`](../feature-specs/cross-cutting/alembic-and-model-alignment.md)
 - Current slice: Contract truth hardening
-- Current scope: finish the remaining GraphQL codegen dependency advisories after the patched Next.js line and web runtime surface were already hardened under the current contract
+- Current scope: the Alembic history now upgrades existing databases onto the ORM's snake_case database contract and passes `alembic check` on a temporary verification database
 
 ## Most Recently Completed Initiative
 
-- Initiative: Product docs backfill and status normalization
-- Feature spec: [`../feature-specs/cross-cutting/product-docs-backfill.md`](../feature-specs/cross-cutting/product-docs-backfill.md)
-- Outcome: the product, planning, and historical foundation docs were backfilled from live repo truth and became the default planning baseline
+- Initiative: Alembic and model alignment
+- Feature spec: [`../feature-specs/cross-cutting/alembic-and-model-alignment.md`](../feature-specs/cross-cutting/alembic-and-model-alignment.md)
+- Outcome: the migration history now aligns with SQLAlchemy metadata for snake_case task and user columns, and the repo validation contract remains green
 
 ## Next Approved Candidate Specs
 
-- Migration and model alignment
 - Task quality and browser coverage hardening
 - Package and contract truth hardening beyond dependency alerts
+- Runtime warning cleanup for FastAPI lifespan and Python dependency deprecations
 
 ## Latest Validation
 
@@ -29,4 +29,4 @@ This file is the live execution control surface for current delivery work.
 
 ## Blockers
 
-- Patched GraphQL codegen releases recommended by `pnpm audit` were not installable from the default package-manager resolution path and still need a reliable install path before the last npm advisories can be cleared
+- None. The corrective migration validates on a temporary database and the canonical repo contract passes locally.
