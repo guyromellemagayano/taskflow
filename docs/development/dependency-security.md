@@ -9,7 +9,7 @@ This document records TaskFlow's current dependency-vulnerability posture and th
 Validated against live repo state on May 12, 2026.
 
 - Python audit posture: `No known vulnerabilities found`
-- npm audit posture: `3 low`, `9 moderate`, `10 high`, `0 critical`
+- npm audit posture: `0 low`, `1 moderate`, `2 high`, `0 critical`
 - Canonical repo validation: `./scripts/devops/run-make.sh validate` passes
 
 ## Applied Hardening
@@ -24,6 +24,7 @@ Validated against live repo state on May 12, 2026.
 
 - Root overrides now pin patched transitive versions for `brace-expansion`, `fast-uri`, `flatted`, `lodash`, `minimatch`, `picomatch`, `postcss`, `rollup`, `undici`, and `yaml`
 - The Vitest toolchain now runs on `vite@8.0.12`, `vitest@4.1.4`, `@vitejs/plugin-react@6.0.1`, `@vitest/coverage-v8@4.1.4`, `@vitest/ui@4.1.4`, and `@vitest/eslint-plugin@1.6.16`
+- The web app and companion packages now run on the patched Next.js line: `next@16.2.6`, `@next/env@16.2.6`, `@next/eslint-plugin-next@16.2.6`, `eslint-config-next@16.2.6`, and `@next/bundle-analyzer@16.2.6`
 
 ### Web Runtime Surface
 
@@ -32,12 +33,6 @@ Validated against live repo state on May 12, 2026.
 - The current app surface does not use middleware or proxy authorization, `next/image`, server actions, cache components, rewrites, WebSocket upgrades, or i18n routing
 
 ## Remaining Open Alerts
-
-### Next.js
-
-- `pnpm audit` still reports `next` advisories against `apps/web`
-- The audit recommends patched Next.js releases beyond the currently installable line visible to this repo environment
-- TaskFlow has already removed the live proxy surface and the image-optimization endpoint, which lowers actual exposure, but the package-version alert remains open until an installable patched Next.js release is available here
 
 ### GraphQL Codegen
 
@@ -53,6 +48,5 @@ Validated against live repo state on May 12, 2026.
 
 ## Follow-Through
 
-- Upgrade `next` to an installable patched line as soon as the required release is available in the active registry view
 - Upgrade the GraphQL codegen packages once `6.3.0` or later is installable here, then re-run codegen, builds, and audit
 - Keep Python and npm audit checks part of release hardening whenever dependency manifests or lockfiles change

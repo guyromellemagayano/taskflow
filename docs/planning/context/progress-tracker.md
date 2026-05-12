@@ -16,7 +16,7 @@ This tracker was normalized against live repo surfaces on May 12, 2026. It recor
   - Authenticated users can create, edit, delete, reschedule, reprioritize, and complete tasks from the web workspace.
   - Status, priority, search, and sort state are reflected in the `/tasks` URL.
   - The API exposes GraphQL, REST auth, health, readiness, and metrics surfaces.
-  - The dependency hardening baseline is now explicit: Python requirements audit cleanly, the Vite test toolchain is on the Vite 8 line, and the repo records remaining blocked npm advisories.
+  - The dependency hardening baseline is now explicit: Python requirements audit cleanly, the Vite test toolchain is on the Vite 8 line, the web app runs on `next@16.2.6`, and the repo records the remaining GraphQL codegen advisories.
 - Partial or constrained:
   - Browser auth is split between GraphQL token persistence in the web app and REST cookie-setting auth endpoints on the API.
   - The task hooks and service layer support limit and offset, but the current GraphQL query returns a plain list and the web UI has no dedicated pagination controls.
@@ -26,7 +26,7 @@ This tracker was normalized against live repo surfaces on May 12, 2026. It recor
   - The initial Alembic migration still uses camelCase database columns while the current SQLAlchemy models map snake_case column names.
   - `apps/web/e2e` does not exist yet, so end-to-end browser validation is not part of the shipped repo baseline.
   - The API still emits follow-up runtime warnings around FastAPI lifespan migration and older Python dependency surfaces.
-  - `next` and GraphQL codegen advisories still remain open in `pnpm audit` because the patched upstream releases required by the advisory feed were not installable from the registry view available during the hardening pass.
+  - The remaining npm advisories are now limited to the GraphQL codegen dependency path.
 
 ## Current Next-Work Queue
 
@@ -34,4 +34,4 @@ This tracker was normalized against live repo surfaces on May 12, 2026. It recor
 - Replace placeholder task UI tests and add a real `apps/web/e2e` suite
 - Make task pagination and task-detail surfaces truthful across web and GraphQL
 - Implement real analytics aggregation instead of the current worker scaffold
-- Move `next` and GraphQL codegen to patched installable releases when they are available in the active registry view
+- Move the GraphQL codegen dependency path to patched installable releases when they are available in a reliable install path

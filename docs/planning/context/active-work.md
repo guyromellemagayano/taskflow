@@ -9,7 +9,7 @@ This file is the live execution control surface for current delivery work.
 - Status: `In Progress`
 - Current active feature spec: [`../feature-specs/cross-cutting/dependency-vulnerability-hardening.md`](../feature-specs/cross-cutting/dependency-vulnerability-hardening.md)
 - Current slice: Contract truth hardening
-- Current scope: reduce actionable default-branch dependency vulnerabilities, harden the live web attack surface, document blocked upstream advisory paths, and keep the canonical validation contract green
+- Current scope: finish the remaining GraphQL codegen dependency advisories after the patched Next.js line and web runtime surface were already hardened under the current contract
 
 ## Most Recently Completed Initiative
 
@@ -29,5 +29,4 @@ This file is the live execution control surface for current delivery work.
 
 ## Blockers
 
-- Patched `next` releases recommended by `pnpm audit` were not installable from the registry view available during the current hardening pass
-- Patched GraphQL codegen releases recommended by `pnpm audit` were not installable from the registry view available during the current hardening pass
+- Patched GraphQL codegen releases recommended by `pnpm audit` were not installable from the default package-manager resolution path and still need a reliable install path before the last npm advisories can be cleared
