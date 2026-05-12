@@ -1,0 +1,96 @@
+type AuthPayload {
+  accessToken: String!
+  refreshToken: String!
+  user: User!
+}
+
+input CreateTaskInput {
+  title: String!
+  description: String = null
+  status: String = null
+  priority: String = null
+  dueDate: Date = null
+}
+
+"""
+Date (isoformat)
+"""
+scalar Date
+
+"""
+Date with time (isoformat)
+"""
+scalar DateTime
+
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+type Mutation {
+  createTask(input: CreateTaskInput!): Task!
+  updateTask(input: UpdateTaskInput!): Task
+  deleteTask(id: String!): Boolean!
+  register(input: RegisterInput!): AuthPayload!
+  login(input: LoginInput!): AuthPayload!
+  refreshToken(input: RefreshTokenInput!): AuthPayload!
+  logout(input: RefreshTokenInput!): Boolean!
+}
+
+type Query {
+  tasks(
+    filters: TaskFilters = null
+    sortBy: String! = "createdAt"
+    sortOrder: String! = "desc"
+    limit: Int! = 50
+    offset: Int! = 0
+  ): [Task!]!
+  task(id: String!): Task
+  me: User
+  user(id: String!): User
+  users: [User!]!
+}
+
+input RefreshTokenInput {
+  refreshToken: String!
+}
+
+input RegisterInput {
+  email: String!
+  password: String!
+}
+
+type Task {
+  id: String!
+  title: String!
+  description: String
+  status: String!
+  priority: String!
+  dueDate: Date
+  userId: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+input TaskFilters {
+  status: String = null
+  priority: String = null
+  dueDateFrom: Date = null
+  dueDateTo: Date = null
+  search: String = null
+}
+
+input UpdateTaskInput {
+  id: String!
+  title: String = null
+  description: String = null
+  status: String = null
+  priority: String = null
+  dueDate: Date = null
+}
+
+type User {
+  id: String!
+  email: String!
+  createdAt: DateTime!
+}

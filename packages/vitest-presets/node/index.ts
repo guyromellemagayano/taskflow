@@ -1,1 +1,1 @@
-export { default as nodePreset } from "./vitest-preset";
+export { default as nodePreset } from "./vitest-preset.js";

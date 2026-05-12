@@ -1,4 +1,4 @@
-FROM node:20-alpine AS base
+FROM node:24-alpine AS base
 
 # Install dependencies only when needed
 FROM base AS deps
@@ -6,14 +6,17 @@ RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 # Install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@10.28.0 --activate
 
 # Copy package files
-COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml ./
+COPY .npmrc package.json pnpm-lock.yaml* pnpm-workspace.yaml ./
 COPY apps/web/package.json ./apps/web/
+COPY packages/config-eslint/package.json ./packages/config-eslint/
+COPY packages/config-typescript/package.json ./packages/config-typescript/
 COPY packages/shared/package.json ./packages/shared/
 COPY packages/ui/package.json ./packages/ui/
 COPY packages/graphql/package.json ./packages/graphql/
+COPY packages/vitest-presets/package.json ./packages/vitest-presets/
 
 # Install dependencies
 RUN pnpm install --frozen-lockfile
@@ -28,9 +31,11 @@ RUN corepack enable
 
 # Copy package.json first to get pnpm version
 COPY package.json ./
-RUN corepack prepare pnpm@latest --activate
+RUN corepack prepare pnpm@10.28.0 --activate
 
 COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/apps ./apps
+COPY --from=deps /app/packages ./packages
 COPY . .
 
 # Build Next.js

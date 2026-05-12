@@ -1,1 +1,1 @@
-export { default as browserPreset } from "./vitest-preset";
+export { default as browserPreset } from "./vitest-preset.js";

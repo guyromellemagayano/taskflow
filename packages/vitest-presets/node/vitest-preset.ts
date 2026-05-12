@@ -39,14 +39,7 @@ const nodePreset = {
       ],
     },
     include: ["src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts}"],
-    exclude: [
-      "node_modules",
-      "dist",
-      ".idea",
-      ".git",
-      ".cache",
-      "**/*.d.ts",
-    ],
+    exclude: ["node_modules", "dist", ".idea", ".git", ".cache", "**/*.d.ts"],
   },
 };
 

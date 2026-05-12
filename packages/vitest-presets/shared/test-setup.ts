@@ -1,12 +1,16 @@
 /// <reference types="vitest/globals" />
 /// <reference types="@testing-library/jest-dom" />
 
-import "@testing-library/jest-dom";
 import React from "react";
+
 import { afterAll, afterEach, beforeAll, vi } from "vitest";
 
+import "@testing-library/jest-dom";
+
 // Cast globalThis to access global property for test mocks
-const globalObj = globalThis as typeof globalThis & { global: typeof globalThis };
+const globalObj = globalThis as typeof globalThis & {
+  global: typeof globalThis;
+};
 
 // Mock `window.matchMedia`
 Object.defineProperty(globalThis.window, "matchMedia", {
@@ -61,7 +65,7 @@ Object.defineProperty(globalThis.window, "getComputedStyle", {
 });
 
 // Mock console methods to reduce noise in tests
-const originalConsole = { ...console };
+const originalConsole = { ...globalObj.global.console };
 beforeAll(() => {
   globalObj.global.console.warn = vi.fn();
   globalObj.global.console.error = vi.fn();
@@ -239,7 +243,7 @@ vi.mock("@mantine/core", () => {
 // Global mock for `@mantine/dates`
 vi.mock("@mantine/dates", () => {
   const DateInput = React.forwardRef<any, any>((props, ref) => {
-    const { children, ...rest } = props;
+    const { ...rest } = props;
     return React.createElement("input", {
       ref,
       type: "date",
