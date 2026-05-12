@@ -1,5 +1,7 @@
 # Dependencies
 node_modules/
+.npm-cache/
+.pnpm-store/
 .pnp
 .pnp.js
 
@@ -52,22 +54,29 @@ node_modules/.cache/turbo
 
 # Python
 __pycache__/
+**/__pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
 env/
 venv/
+**/venv/
 ENV/
 .venv
 pip-log.txt
 pip-delete-this-directory.txt
 .pytest_cache/
+**/.pytest_cache/
 .coverage
+**/.coverage
 htmlcov/
+**/htmlcov/
 *.egg-info/
 dist/
 build/
+.ruff_cache/
+**/.ruff_cache/
 
 # IDEs
 .idea/

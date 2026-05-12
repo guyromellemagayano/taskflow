@@ -1,3 +1,4 @@
 #!/usr/bin/env sh
 # Validate commit message format
-npx --no -- commitlint --edit "$1"
+pnpm exec commitlint --edit "$1"
+node ./scripts/validate-commit-message.mjs "$1"

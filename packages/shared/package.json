@@ -36,6 +36,8 @@
     "zod": "catalog:"
   },
   "devDependencies": {
+    "eslint": "catalog:",
+    "prettier": "catalog:",
     "typescript": "catalog:"
   },
   "peerDependencies": {},

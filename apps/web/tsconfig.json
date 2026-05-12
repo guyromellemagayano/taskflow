@@ -1,5 +1,5 @@
 {
-  "extends": "@taskflow/config-typescript/src/nextjs.json",
+  "extends": "@taskflow/config-typescript/nextjs.json",
   "compilerOptions": {
     "target": "ES2020",
     "lib": ["DOM", "DOM.Iterable", "ESNext"],

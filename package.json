@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "bootstrap": "./scripts/devops/run-make.sh bootstrap",
     "build": "turbo run build",
     "build:packages": "pnpm build --filter=\"@taskflow/*\"",
     "check-types": "turbo run type-check",
@@ -10,11 +11,16 @@
     "commit": "NPM_CONFIG_LOGLEVEL=error git-cz",
     "commit:retry": "git commit --amend --no-edit",
     "dev": "turbo run dev --parallel --output-logs=full",
+    "dev:runtime": "./scripts/devops/run-make.sh dev",
+    "doctor": "./scripts/devops/run-make.sh doctor",
+    "down": "./scripts/devops/run-make.sh down",
     "format": "turbo run format",
     "format:check": "turbo run format:check",
     "lint": "turbo run lint",
     "lint:fix": "turbo run lint:fix",
+    "logs": "./scripts/devops/run-make.sh logs",
     "prepare": "husky",
+    "release-check": "./scripts/devops/run-make.sh release-check",
     "sort-package-json": "sort-package-json",
     "sort-package-json:all": "pnpm -r exec sort-package-json",
     "test": "turbo run test",
@@ -26,7 +32,11 @@
     "test:run": "turbo run test:run",
     "test:run:coverage": "turbo run test:run:coverage",
     "test:watch": "turbo run test --parallel",
-    "type-check": "turbo run type-check"
+    "type-check": "turbo run type-check",
+    "up": "./scripts/devops/run-make.sh up",
+    "urls": "./scripts/devops/run-make.sh urls",
+    "validate": "./scripts/devops/run-make.sh validate",
+    "verify-commit": "git verify-commit HEAD"
   },
   "config": {
     "commitizen": {
@@ -57,7 +67,7 @@
   },
   "packageManager": "pnpm@10.28.0+sha512.05df71d1421f21399e053fde567cea34d446fa02c76571441bfc1c7956e98e363088982d940465fd34480d4d90a0668bc12362f8aa88000a64e83d0b0e47be48",
   "engines": {
-    "node": ">=18.0.0",
-    "pnpm": ">=10.0.0"
+    "node": "24.15.0",
+    "pnpm": "10.28.0"
   }
 }

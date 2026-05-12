@@ -32,6 +32,8 @@
   },
   "devDependencies": {
     "@taskflow/vitest-presets": "workspace:*",
+    "eslint": "catalog:",
+    "prettier": "catalog:",
     "typescript": "catalog:"
   },
   "peerDependencies": {

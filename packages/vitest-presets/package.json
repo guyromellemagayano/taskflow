@@ -11,16 +11,16 @@
       "default": "./index.ts"
     },
     "./browser": {
-      "types": "./browser/index.ts",
-      "default": "./browser/index.ts"
+      "types": "./browser/vitest-preset.ts",
+      "default": "./browser/vitest-preset.ts"
     },
     "./node": {
-      "types": "./node/index.ts",
-      "default": "./node/index.ts"
+      "types": "./node/vitest-preset.ts",
+      "default": "./node/vitest-preset.ts"
     },
     "./react": {
-      "types": "./react/index.ts",
-      "default": "./react/index.ts"
+      "types": "./react/vitest-preset.ts",
+      "default": "./react/vitest-preset.ts"
     },
     "./shared": {
       "types": "./shared/index.ts",
@@ -61,7 +61,9 @@
     "@types/react-dom": "catalog:",
     "@vitest/coverage-v8": "catalog:",
     "@vitest/ui": "catalog:",
+    "eslint": "catalog:",
     "jsdom": "catalog:",
+    "prettier": "catalog:",
     "vitest": "catalog:"
   },
   "peerDependencies": {

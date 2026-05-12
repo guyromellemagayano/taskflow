@@ -125,8 +125,6 @@ services:
       DEBUG: "true"
     volumes:
       - ./apps/api:/app
-      - /app/venv
-      - /app/__pycache__
     depends_on:
       postgres:
         condition: service_healthy
@@ -165,8 +163,6 @@ services:
       DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/taskflow
     volumes:
       - ./apps/worker:/app
-      - /app/venv
-      - /app/__pycache__
     depends_on:
       postgres:
         condition: service_healthy
@@ -184,6 +180,7 @@ services:
     environment:
       NODE_ENV: production
       NEXT_PUBLIC_API_URL: http://api.localhost:8000
+      NEXT_PUBLIC_GRAPHQL_URL: http://api.localhost:8000/graphql
     depends_on:
       - api
       - traefik

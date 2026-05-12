@@ -1,15 +1,15 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
-  "concurrency": 12,
+  "concurrency": "100%",
   "remoteCache": {
     "enabled": true,
     "signature": true
   },
-  "experimentalUI": true,
-  "experimentalSpaces": true,
   "globalDependencies": [
     ".env*",
+    ".env.example",
+    ".npmrc",
     "pnpm-lock.yaml",
     "pnpm-workspace.yaml",
     "turbo.json"
@@ -76,6 +76,7 @@
       "outputs": [
         "**/generated.ts",
         "**/__generated__/**",
+        "../../apps/web/src/lib/graphql/generated.ts",
         "src/gql/**",
         "src/__generated__/**"
       ],

@@ -22,6 +22,7 @@ module.exports = {
     "type-case": [2, "always", "lower-case"],
     "type-empty": [2, "never"],
     "scope-case": [2, "always", "lower-case"],
+    "scope-empty": [2, "never"],
     "subject-case": [
       2,
       "never",
@@ -39,6 +40,8 @@ module.exports = {
       { value: "api", name: "api:     Backend (FastAPI)" },
       { value: "ci", name: "ci:      CI/CD configuration" },
       { value: "config", name: "config:  General configuration files" },
+      { value: "cursor", name: "cursor: Cursor rules and repo agent surfaces" },
+      { value: "docs", name: "docs:    Documentation and planning" },
       {
         value: "config-eslint",
         name: "config-eslint: ESLint shared configuration package",
@@ -54,8 +57,13 @@ module.exports = {
       { value: "deps", name: "deps:    Dependencies" },
       { value: "docker", name: "docker:  Docker setup" },
       { value: "graphql", name: "graphql: GraphQL schema" },
+      {
+        value: "planning",
+        name: "planning: Feature specs, phase plan, and active work",
+      },
       { value: "packages", name: "packages: General packages normalization" },
       { value: "prettier", name: "prettier: Prettier configuration" },
+      { value: "runtime", name: "runtime: Local runtime and validation flow" },
       { value: "root", name: "root:    Root-level configuration changes" },
       { value: "shared", name: "shared:  Shared TypeScript types" },
       { value: "ui", name: "ui:      Shared UI components" },
@@ -67,7 +75,7 @@ module.exports = {
       { value: "worker", name: "worker:  Celery worker" },
     ],
     useEmoji: false,
-    allowEmptyScopes: true,
+    allowEmptyScopes: false,
     markBreakingChangeMode: true,
   },
 };
