@@ -16,9 +16,9 @@ catalog:
   "@mantine/hooks": 8.3.14
   "@mantine/modals": 8.3.14
   "@mantine/notifications": 8.3.14
-  "@next/bundle-analyzer": 16.1.6
-  "@next/env": 16.2.4
-  "@next/eslint-plugin-next": 16.2.4
+  "@next/bundle-analyzer": 16.2.6
+  "@next/env": 16.2.6
+  "@next/eslint-plugin-next": 16.2.6
   "@playwright/test": 1.58.2
   "@tabler/icons-react": ^3.36.1
   "@tailwindcss/postcss": 4.1.18
@@ -42,7 +42,7 @@ catalog:
   dayjs: ^1.11.19
   eslint: 9.39.2
   eslint-config-mantine: ^4.0.3
-  eslint-config-next: 16.1.6
+  eslint-config-next: 16.2.6
   eslint-config-prettier: 10.1.8
   eslint-import-resolver-typescript: 4.4.4
   eslint-plugin-import: 2.32.0
@@ -62,7 +62,7 @@ catalog:
   jsdom: 29.0.2
   lint-staged: ^16.4.0
   msw: 2.12.9
-  next: 16.1.6
+  next: 16.2.6
   postcss: ^8.5.14
   postcss-preset-mantine: ^1.18.0
   postcss-simple-vars: ^7.0.1
