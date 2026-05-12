@@ -2,7 +2,7 @@
 
 ## Daily Flow
 
-1. Start with the planning chain for non-trivial work.
+1. Start with the planning chain for non-trivial work: `features -> checklist -> slices -> phases -> spec -> active work`.
 2. Run `./scripts/devops/run-make.sh doctor` if the shell or machine state is uncertain.
 3. Use `./scripts/devops/run-make.sh up` or `dev` for the local runtime.
 4. Validate narrowly first.
@@ -10,15 +10,17 @@
 
 ## Release Slice Flow
 
-1. Define the product slice.
-2. Place it in the correct phase.
-3. Write or update the feature spec.
-4. Mark the current slice in `active-work.md`.
-5. Implement in bounded file or folder groups.
-6. Run validation.
-7. Create a grouped commit.
-8. Verify the commit signature.
-9. Push.
+1. Define or update the intended product surface in `docs/product/features.md`.
+2. Mark shipped, partial, planned, or hardening status in `docs/product/module-feature-checklist.md`.
+3. Define the product slice.
+4. Place it in the correct phase.
+5. Write or update the feature spec.
+6. Mark the current slice in `active-work.md`.
+7. Implement in bounded file or folder groups.
+8. Run validation.
+9. Create a grouped commit.
+10. Verify the commit signature.
+11. Push.
 
 ## Grouped Commit Rules
 

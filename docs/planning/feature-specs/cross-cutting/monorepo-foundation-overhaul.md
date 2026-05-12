@@ -3,7 +3,7 @@
 ## Status
 
 - Type: `Delivery`
-- Status: `In Progress`
+- Status: `Completed`
 
 ## Problem
 

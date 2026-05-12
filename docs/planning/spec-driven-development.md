@@ -4,14 +4,16 @@ TaskFlow now uses a docs-first delivery workflow for non-trivial work.
 
 ## Execution Chain
 
-1. Define the product slice in [Product Slices](../product/slices.md).
-2. Place the work in the correct phase in [Phase Plan](./phase-plan.md).
-3. Write or update the feature spec for the slice.
-4. Mark the slice in [Active Work](./context/active-work.md).
-5. Implement in bounded file or folder groups.
-6. Validate narrowly first, then broaden when shared surfaces are touched.
-7. Create a grouped signed commit.
-8. Verify the commit locally before pushing.
+1. Define or update the intended product surface in [Product Features](../product/features.md).
+2. Record the module status in [Module Feature Checklist](../product/module-feature-checklist.md).
+3. Define the product slice in [Product Slices](../product/slices.md).
+4. Place the work in the correct phase in [Phase Plan](./phase-plan.md).
+5. Write or update the feature spec for the slice.
+6. Mark the slice in [Active Work](./context/active-work.md).
+7. Implement in bounded file or folder groups.
+8. Validate narrowly first, then broaden when shared surfaces are touched.
+9. Create a grouped signed commit.
+10. Verify the commit locally before pushing.
 
 ## What Requires A Feature Spec
 

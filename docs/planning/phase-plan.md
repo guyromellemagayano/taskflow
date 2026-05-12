@@ -2,42 +2,53 @@
 
 ## Purpose
 
-This file owns implementation order and current status for the TaskFlow monorepo overhaul.
+This file owns implementation order and current status for TaskFlow's canonical product and platform delivery order.
 
 ## Current Phase Status
 
-| Phase   | Status       | Definitive interpretation                                                                                                                         |
-| ------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Phase 1 | Implementing | Root runtime and tooling contract are being reset around Node, pnpm, Docker Compose, Make, and canonical validation.                              |
-| Phase 2 | Implementing | Planning, governance, and docs-first workflow surfaces are being established as the default repo contract.                                        |
-| Phase 3 | Implementing | Signed delivery, grouped commit rules, release confidence commands, and CI are being aligned to the same local workflow.                          |
-| Phase 4 | Planned      | Shared package boundaries, GraphQL/codegen truth, and cross-package contract cleanup will follow the foundation reset.                            |
-| Phase 5 | Planned      | Migration-model alignment, Python contract hardening, and deeper automation or integration surfaces will follow once the base workflow is stable. |
+| Phase   | Status       | Definitive interpretation                                                                                                               |
+| ------- | ------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Phase 1 | Shipped      | The repo has a working web, API, and worker foundation with operational endpoints and the baseline local runtime shape.                 |
+| Phase 2 | Shipped      | Account creation, login, session bootstrap, refresh, and logout exist across the current web and API surfaces.                          |
+| Phase 3 | Shipped      | Task CRUD and the authenticated list workspace exist as the main product surface.                                                       |
+| Phase 4 | Partial      | Task UX hardening and background analytics have started, but pagination truth, analytics depth, and test coverage are not yet complete. |
+| Phase 5 | Shipped      | The monorepo workflow overhaul established the canonical runtime, planning, validation, grouped-commit, and signed-delivery contract.   |
+| Phase 6 | Implementing | Product features, checklist, slices, phase status, and historical foundation specs are being normalized from live repo truth.           |
+| Phase 7 | Planned      | Data contracts, test depth, worker implementation, and remaining package truth issues will be hardened under the new workflow contract. |
 
 ## Phase Details
 
-### Phase 1: Runtime Contract Reset
+### Phase 1: Runtime And Application Foundation
 
-- Core focus: `.nvmrc`, `.npmrc`, `packageManager`, `engines`, `turbo.json`, `Makefile`, `scripts/devops/*`, Dockerfile alignment
+- Core focus: initial web shell, FastAPI app, operational endpoints, database wiring, Redis support, and Celery worker baseline
 
-### Phase 2: Planning And Governance
+### Phase 2: Authentication And Session Foundation
 
-- Core focus: `AGENTS.md`, `.cursor/rules/*`, docs tree, feature-spec workflow, active-work tracking
+- Core focus: user model, registration, login, `me`, refresh-token rotation, logout, and tasks-route gating
 
-### Phase 3: Release Confidence
+### Phase 3: Task Management Baseline
 
-- Core focus: grouped commits, signed verification, commit validation, `make release-check`, CI mirroring local validation
+- Core focus: task model, GraphQL CRUD, task service layer, authenticated task page, and basic list interactions
 
-### Phase 4: Package And Contract Truth
+### Phase 4: Task Experience And Async Scaffolding
 
-- Core focus: shared package ownership, config exports, GraphQL/codegen authority, import and package-boundary cleanup
+- Core focus: filtering, search, sorting, optimistic updates, delete confirmation, and scheduled analytics scaffolding
 
-### Phase 5: Runtime Hardening
+### Phase 5: Workflow And Release Overhaul
 
-- Core focus: migration-model alignment, Python service testing depth, service contract drift reduction, automation hardening
+- Core focus: runtime contract reset, docs-first workflow, grouped commits, signed verification, and CI alignment
+
+### Phase 6: Product Docs Backfill
+
+- Core focus: canonical product/features docs, module status normalization, reconstructed slice and phase order, and historical foundation specs
+
+### Phase 7: Contract Truth Hardening
+
+- Core focus: migration-model alignment, real web coverage, task detail and pagination truth, worker analytics implementation, and package-boundary hardening
 
 ## Sequencing Constraints
 
-- Phase 1 must land before later phases can be trustworthy.
-- Phase 2 and Phase 3 should be established before wide feature work resumes, because they define how work is sliced, validated, committed, and pushed.
-- Phase 4 and Phase 5 should use the new workflow contract rather than inventing local exceptions.
+- Phases 1 through 4 define the reconstructed product build order implied by the live repo and should be treated as the baseline product history from now on.
+- Phase 5 establishes the workflow contract and must remain the gate for new non-trivial work.
+- Phase 6 makes the backfilled docs authoritative so later slices do not drift from repo truth again.
+- Phase 7 must use the current docs-first workflow rather than inventing one-off exceptions.
