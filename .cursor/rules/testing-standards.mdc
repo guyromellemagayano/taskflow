@@ -1,0 +1,27 @@
+---
+description: Testing and validation standards for TaskFlow
+globs: ["apps/**/*", "packages/**/*", "Makefile", "docs/**/*"]
+alwaysApply: true
+---
+
+<!-- markdownlint-disable -->
+
+# Testing Standards
+
+## Validation Baseline
+
+- Use `make validate` as the canonical local validation baseline.
+- Use `make release-check` before grouped release commits or pushes.
+- Prefer narrow validation first, then broaden when the change touches shared surfaces.
+
+## Framework Defaults
+
+- Web and shared JS behavior use Vitest.
+- Browser E2E uses Playwright when a real suite exists under `apps/web/e2e`.
+- API and worker behavior use pytest.
+
+## Coverage Philosophy
+
+- Prefer risk-based coverage over broad but shallow test counts.
+- Test behavior, contracts, and orchestration paths before styling details.
+- If a suite does not exist yet, add the smallest useful smoke or regression test rather than pretending the surface is already covered.

@@ -1,0 +1,46 @@
+---
+description: Planning workflow standards for TaskFlow
+globs: ["**/*"]
+alwaysApply: true
+---
+
+<!-- markdownlint-disable -->
+
+# Planning Workflow Standards
+
+## Instruction Source
+
+- Primary authority is `AGENTS.md`.
+- This rule reinforces the planning and execution contract for contributors and agents.
+
+## Mandatory Planning Path
+
+For any non-trivial feature, refactor, schema change, workflow change, cross-package edit, runtime change, or architecture decision:
+
+1. Read `docs/README.md`.
+2. Read `docs/product/slices.md`.
+3. Read `docs/planning/phase-plan.md`.
+4. Read the relevant architecture or development doc.
+5. Read `docs/planning/spec-driven-development.md`.
+6. Read the relevant files in `docs/planning/context/`.
+7. Read or create the relevant feature spec in `docs/planning/feature-specs/`.
+8. Update `docs/planning/context/active-work.md` when the work is active delivery work.
+
+Do not bypass this workflow unless the developer explicitly overrides it in the active instruction context.
+
+## Feature Spec Gate
+
+- No non-trivial implementation starts without a feature spec.
+- Feature specs must define the problem, operator outcome, scope, non-goals, boundaries, affected surfaces, acceptance checks, and validation plan.
+- If the work is too vague to write that spec, the work is not ready.
+
+## Active Work Gate
+
+- `docs/planning/context/active-work.md` is the live execution control surface.
+- Update it when work starts, when the current slice changes, after meaningful validation, and before handoff.
+- Update `docs/planning/context/progress-tracker.md` only when shipped posture or approved next-work state changes.
+
+## Docs Before Code
+
+- If a change affects durable behavior, boundaries, contributor workflow, or release flow, update docs before or alongside code changes.
+- If the docs are stale, fix the docs first instead of coding against stale assumptions.

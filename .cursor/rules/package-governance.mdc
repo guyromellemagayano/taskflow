@@ -1,0 +1,30 @@
+---
+description: Package governance for the TaskFlow monorepo
+globs: ["package.json", "pnpm-workspace.yaml", "tsconfig*.json", "apps/**/*", "packages/**/*"]
+alwaysApply: true
+---
+
+<!-- markdownlint-disable -->
+
+# Package Governance
+
+## Dependency Ownership
+
+- External dependency versions belong only in `pnpm-workspace.yaml` under `catalog:`.
+- Internal `@taskflow/*` dependencies must use `workspace:*`.
+- Root `package.json` is for repository orchestration tooling only.
+- Add dependencies to the workspace that actually imports or executes them.
+
+## Export And Import Rules
+
+- Shared config artifacts must be consumed through explicit package exports such as `@taskflow/config-typescript/base.json`.
+- Do not import internal config sources such as `@taskflow/config-typescript/src/base.json`.
+- Runtime or domain packages should expose public APIs through their package root.
+- Do not introduce deep-import habits for runtime packages unless a package intentionally exports that path.
+
+## Package Boundaries
+
+- `packages/shared` is for genuinely shared TypeScript utilities or types.
+- `packages/ui` should contain real shared UI contracts only; do not treat it as a dumping ground.
+- `packages/graphql` should stay authoritative only if it owns a real shared GraphQL contract or codegen surface.
+- Do not create pseudo-packages or fake abstraction layers just because the repo is a monorepo.

@@ -1,0 +1,21 @@
+---
+description: Import and alias resolution rules for TaskFlow
+globs: ["apps/**/*.{ts,tsx,js,jsx,mts,cts}", "packages/**/*.{ts,tsx,js,jsx,mts,cts}", "tsconfig*.json"]
+alwaysApply: true
+---
+
+<!-- markdownlint-disable -->
+
+# Import Resolution Rules
+
+## Workspace Imports
+
+- Use workspace dependencies and package exports for `@taskflow/*` imports.
+- Do not recreate workspace imports with TypeScript-only path aliases.
+- Inside a shared package, use relative imports for implementation internals instead of self-importing through the package name.
+
+## Local Aliases
+
+- `@web/*` is allowed inside `apps/web` because the alias is declared in the local TypeScript config and resolved by the web runtime.
+- Do not add new local aliases unless the runtime or bundler resolves them too.
+- Runtime resolution is the source of truth; avoid editor-only or test-only aliases.

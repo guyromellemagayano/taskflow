@@ -1,0 +1,24 @@
+---
+description: Commit message standards for grouped TaskFlow commits
+globs: []
+alwaysApply: false
+---
+
+# Commit Message Standards
+
+## Group Commit Standard
+
+When creating grouped commits, use this structure:
+
+- First line: `type(scope): concise summary`
+- One blank line after the subject
+- Dash-prefixed bullets only
+- No blank lines between bullets
+- Keep subject under 100 characters
+- Keep body lines at or below 250 characters
+
+## Release Workflow
+
+- Group commits by cohesive slice or responsibility first, not by arbitrary file count.
+- Sign grouped commits with `git commit -S`.
+- Verify with `git verify-commit HEAD` before pushing.
