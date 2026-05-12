@@ -8,7 +8,7 @@
     "build:packages": "pnpm build --filter=\"@taskflow/*\"",
     "check-types": "turbo run type-check",
     "clean": "turbo run clean",
-    "commit": "NPM_CONFIG_LOGLEVEL=error git-cz",
+    "commit": "NPM_CONFIG_LOGLEVEL=error czg",
     "commit:retry": "git commit --amend --no-edit",
     "dev": "turbo run dev --parallel --output-logs=full",
     "dev:runtime": "./scripts/devops/run-make.sh dev",
@@ -38,11 +38,6 @@
     "validate": "./scripts/devops/run-make.sh validate",
     "verify-commit": "git verify-commit HEAD"
   },
-  "config": {
-    "commitizen": {
-      "path": "node_modules/cz-git"
-    }
-  },
   "devDependencies": {
     "@commitlint/cli": "catalog:",
     "@commitlint/config-conventional": "catalog:",
@@ -50,7 +45,6 @@
     "@taskflow/config-eslint": "workspace:*",
     "@taskflow/config-typescript": "workspace:*",
     "@taskflow/vitest-presets": "workspace:*",
-    "commitizen": "catalog:",
     "cz-git": "catalog:",
     "husky": "catalog:",
     "lint-staged": "catalog:",
@@ -69,5 +63,20 @@
   "engines": {
     "node": "24.15.0",
     "pnpm": "10.28.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "@graphql-codegen/visitor-plugin-common": "6.2.2",
+      "brace-expansion": "2.1.0",
+      "fast-uri": "3.1.2",
+      "flatted": "3.4.2",
+      "lodash": "4.17.23",
+      "minimatch": "9.0.9",
+      "picomatch": "4.0.4",
+      "postcss": "8.5.14",
+      "rollup": "4.60.1",
+      "undici": "7.25.0",
+      "yaml": "2.8.4"
+    }
   }
 }
