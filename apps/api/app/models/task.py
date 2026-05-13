@@ -33,8 +33,28 @@ class Task(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     title = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
-    status = Column(Enum(TaskStatus), nullable=False, default=TaskStatus.TODO, index=True)
-    priority = Column(Enum(TaskPriority), nullable=False, default=TaskPriority.MEDIUM, index=True)
+    status = Column(
+        Enum(
+            TaskStatus,
+            values_callable=lambda enum_cls: [member.value for member in enum_cls],
+            name="taskstatus",
+            native_enum=True,
+        ),
+        nullable=False,
+        default=TaskStatus.TODO,
+        index=True,
+    )
+    priority = Column(
+        Enum(
+            TaskPriority,
+            values_callable=lambda enum_cls: [member.value for member in enum_cls],
+            name="taskpriority",
+            native_enum=True,
+        ),
+        nullable=False,
+        default=TaskPriority.MEDIUM,
+        index=True,
+    )
     dueDate = Column("due_date", Date, nullable=True, index=True)
     userId = Column(
         "user_id", UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True
