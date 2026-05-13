@@ -6,27 +6,27 @@ This file is the live execution control surface for current delivery work.
 
 ## Active Initiative
 
-- Status: `Completed`
-- Current active feature spec: [`../feature-specs/cross-cutting/alembic-and-model-alignment.md`](../feature-specs/cross-cutting/alembic-and-model-alignment.md)
+- Status: `Ready For Next Slice`
+- Current active feature spec: `None`
 - Current slice: Contract truth hardening
-- Current scope: the Alembic history now upgrades existing databases onto the ORM's snake_case database contract and passes `alembic check` on a temporary verification database
+- Current scope: choose the next approved follow-through slice after task pagination and detail truth hardening
 
 ## Most Recently Completed Initiative
 
-- Initiative: Alembic and model alignment
-- Feature spec: [`../feature-specs/cross-cutting/alembic-and-model-alignment.md`](../feature-specs/cross-cutting/alembic-and-model-alignment.md)
-- Outcome: the migration history now aligns with SQLAlchemy metadata for snake_case task and user columns, and the repo validation contract remains green
+- Initiative: Task pagination and detail truth hardening
+- Feature spec: [`../feature-specs/cross-cutting/task-pagination-and-detail-truth-hardening.md`](../feature-specs/cross-cutting/task-pagination-and-detail-truth-hardening.md)
+- Outcome: the GraphQL task list now returns connection metadata, `/tasks` now drives real page state from the URL, and the existing `task(id)` query now powers a dedicated single-task route
 
 ## Next Approved Candidate Specs
 
-- Task quality and browser coverage hardening
 - Package and contract truth hardening beyond dependency alerts
+- Worker analytics implementation beyond scaffold status
 - Runtime warning cleanup for FastAPI lifespan and Python dependency deprecations
 
 ## Latest Validation
 
-- Completed locally on May 12, 2026 through `./scripts/devops/run-make.sh validate`
+- Completed locally on May 13, 2026 through `pnpm format:check`, `pnpm check-types`, `pnpm lint`, `pnpm build`, `pnpm --filter @taskflow/web test:run`, and `pnpm --filter @taskflow/web test:e2e`
 
 ## Blockers
 
-- None. The corrective migration validates on a temporary database and the canonical repo contract passes locally.
+- None.

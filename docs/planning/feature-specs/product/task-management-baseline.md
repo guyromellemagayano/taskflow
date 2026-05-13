@@ -20,12 +20,12 @@ Define the main TaskFlow product slice: an authenticated workspace where a user 
 
 ## Constraints Carried Forward
 
-- The list contract uses `limit` and `offset`, but the current GraphQL query still returns a plain list instead of connection metadata.
-- There is no dedicated task detail route even though the API exposes `task(id)`.
-- The task UI test files currently document missing coverage rather than supplying full behavioral tests.
+- The task workspace remains list-first even though a dedicated read-only task detail route now exists.
+- Offset pagination and connection metadata are now truthful, but the UI still uses a simple pager rather than a richer task-navigation experience.
+- Browser coverage exists, but authenticated task CRUD and pagination flows still need deeper follow-through.
 
 ## Follow-On Work
 
-- Decide whether task pagination should remain list-based or move to a real connection contract.
-- Add a dedicated task detail experience only if it improves the actual workflow instead of fragmenting the current list-first surface.
-- Replace placeholder UI tests with real behavioral and browser coverage.
+- Decide whether offset pagination should remain the long-term contract or move to a cursor-based connection later.
+- Deepen the task detail experience only if it improves the current list-first workflow instead of duplicating editing surfaces.
+- Extend browser coverage into authenticated task CRUD and pagination paths.

@@ -37,6 +37,8 @@ This file defines the canonical TaskFlow product surface as of May 12, 2026. It 
 - Tasks support title, description, status, priority, and due date fields.
 - The task list supports search, status filtering, priority filtering, and sort order changes.
 - Filter and sort state live in the URL so the list view is reproducible.
+- The task workspace exposes paginated list metadata and dedicated paging controls.
+- A single-task detail route exists at `/tasks/[id]` for focused read access while create and edit flows remain centered in the main workspace.
 - The web client uses optimistic list updates for create, update, and delete flows.
 
 ### API And Operational Surfaces
@@ -53,7 +55,5 @@ This file defines the canonical TaskFlow product surface as of May 12, 2026. It 
 
 ## Not Yet Part Of The Canonical Product Surface
 
-- A dedicated single-task detail page in the web app.
-- GraphQL task connection metadata exposed to the web client as the main list contract.
 - User-facing analytics dashboards or reports.
-- Real end-to-end browser coverage as part of the shipped product baseline.
+- Deep authenticated browser coverage for task CRUD, pagination, and detail transitions beyond the current smoke baseline.
