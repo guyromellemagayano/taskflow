@@ -3,31 +3,29 @@
 
 import React from "react";
 
+import { cleanup } from "@testing-library/react";
 import { afterAll, afterEach, beforeAll, vi } from "vitest";
 
 import "@testing-library/jest-dom";
 
-// Cast globalThis to access global property for test mocks
 const globalObj = globalThis as typeof globalThis & {
   global: typeof globalThis;
 };
 
-// Mock `window.matchMedia`
 Object.defineProperty(globalThis.window, "matchMedia", {
   writable: true,
   value: vi.fn().mockImplementation((query: string) => ({
     matches: false,
     media: query,
     onchange: null,
-    addListener: vi.fn(), // deprecated
-    removeListener: vi.fn(), // deprecated
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
     addEventListener: vi.fn(),
     removeEventListener: vi.fn(),
     dispatchEvent: vi.fn(),
   })),
 });
 
-// Mock `ResizeObserver`
 const mockResizeObserver = vi.fn().mockImplementation(() => ({
   observe: vi.fn(),
   unobserve: vi.fn(),
@@ -46,25 +44,20 @@ Object.defineProperty(globalObj.global, "ResizeObserver", {
   value: mockResizeObserver,
 });
 
-// Mock `requestAnimationFrame`
 globalObj.global.requestAnimationFrame = vi.fn(
   (callback: (time: number) => void) => {
     callback(0);
     return 1;
   }
 );
-
-// Mock `cancelAnimationFrame`
 globalObj.global.cancelAnimationFrame = vi.fn();
 
-// Mock `getComputedStyle`
 Object.defineProperty(globalThis.window, "getComputedStyle", {
   value: vi.fn(() => ({
     getPropertyValue: vi.fn(),
   })),
 });
 
-// Mock console methods to reduce noise in tests
 const originalConsole = { ...globalObj.global.console };
 beforeAll(() => {
   globalObj.global.console.warn = vi.fn();
@@ -76,30 +69,57 @@ afterAll(() => {
   globalObj.global.console.error = originalConsole.error;
 });
 
-// Reset modules and mocks between tests
 afterEach(() => {
-  vi.resetModules(); // Clear module cache
-  vi.clearAllMocks(); // Clear mock call history
-  vi.resetAllMocks(); // Reset mocks to original implementations
+  cleanup();
+  vi.clearAllMocks();
   (globalThis as any).__TEST_PATHNAME__ = "/";
   (globalThis as any).__TEST_SEARCH_PARAMS__ = "";
+  cachedSearchParamsValue = "";
+  cachedSearchParams = null;
 });
 
-// Global mock for `next/navigation`
 const mockBack = vi.fn();
-const mockPush = vi.fn();
-const mockReplace = vi.fn();
 const mockForward = vi.fn();
 const mockRefresh = vi.fn();
 const mockPrefetch = vi.fn();
+let cachedSearchParamsValue: string | URLSearchParams = "";
+let cachedSearchParams: URLSearchParams | null = null;
+
+function applyMockNavigation(href: unknown) {
+  if (typeof href !== "string") {
+    return;
+  }
+
+  const url = new URL(href, "http://localhost");
+  (globalThis as any).__TEST_PATHNAME__ = url.pathname;
+  (globalThis as any).__TEST_SEARCH_PARAMS__ = url.search.replace(/^\?/, "");
+}
+
+const mockPush = vi.fn((href: unknown) => {
+  applyMockNavigation(href);
+});
+const mockReplace = vi.fn((href: unknown) => {
+  applyMockNavigation(href);
+});
+
 vi.mock("next/navigation", () => ({
   usePathname: () => (globalThis as any).__TEST_PATHNAME__ ?? "/",
   useSearchParams: () => {
     const value = (globalThis as any).__TEST_SEARCH_PARAMS__ ?? "";
     if (value instanceof URLSearchParams) {
-      return value;
+      if (cachedSearchParamsValue !== value) {
+        cachedSearchParamsValue = value;
+        cachedSearchParams = value;
+      }
+      return cachedSearchParams;
     }
-    return new URLSearchParams(value);
+
+    if (cachedSearchParams === null || cachedSearchParamsValue !== value) {
+      cachedSearchParamsValue = value;
+      cachedSearchParams = new URLSearchParams(value);
+    }
+
+    return cachedSearchParams;
   },
   useRouter: () => ({
     back: mockBack,
@@ -111,12 +131,10 @@ vi.mock("next/navigation", () => ({
   }),
 }));
 
-// Export for tests to use
 (globalThis as any).__MOCK_ROUTER_BACK__ = mockBack;
 (globalThis as any).__MOCK_ROUTER_PUSH__ = mockPush;
 (globalThis as any).__MOCK_ROUTER_REPLACE__ = mockReplace;
 
-// Global mock for `next/image`
 vi.mock("next/image", () => ({
   default: (props: any) =>
     React.createElement("div", {
@@ -127,7 +145,6 @@ vi.mock("next/image", () => ({
     }),
 }));
 
-// Global mock for `next/link`
 vi.mock("next/link", () => {
   const MockLink = React.forwardRef<HTMLAnchorElement, any>((props, ref) => {
     const { href, children, ...rest } = props;
@@ -146,79 +163,75 @@ vi.mock("next/link", () => {
   return { default: MockLink };
 });
 
-// Global mock for `@apollo/client`
-vi.mock("@apollo/client", () => {
-  const mockUseQuery = vi.fn(() => ({
+const mockApolloQueryHook = vi.fn(() => ({
+  data: undefined,
+  loading: false,
+  error: undefined,
+  refetch: vi.fn(),
+  fetchMore: vi.fn(),
+}));
+const mockApolloMutationHook = vi.fn(() => [
+  vi.fn(),
+  {
     data: undefined,
     loading: false,
     error: undefined,
-    refetch: vi.fn(),
-  }));
-  const mockUseMutation = vi.fn(() => [
-    vi.fn(),
-    {
-      data: undefined,
-      loading: false,
-      error: undefined,
-    },
-  ]);
-  const mockApolloClient = {
-    query: vi.fn(),
-    mutate: vi.fn(),
-    readQuery: vi.fn(),
-    writeQuery: vi.fn(),
-    resetStore: vi.fn(),
-  };
-  return {
-    ApolloProvider: ({ children }: { children: React.ReactNode }) =>
-      React.createElement(React.Fragment, {}, children),
-    useQuery: mockUseQuery,
-    useMutation: mockUseMutation,
-    useLazyQuery: vi.fn(),
-    gql: vi.fn((strings: TemplateStringsArray) => strings.join("")),
-    ApolloClient: vi.fn(() => mockApolloClient),
-    InMemoryCache: vi.fn(),
-    createHttpLink: vi.fn(),
-    from: vi.fn(() => mockApolloClient),
-  };
-});
+  },
+]);
+const mockApolloClient = {
+  query: vi.fn(),
+  mutate: vi.fn(),
+  readQuery: vi.fn(),
+  writeQuery: vi.fn(),
+  resetStore: vi.fn(),
+};
 
-// Global mock for `@tanstack/react-query`
-vi.mock("@tanstack/react-query", () => {
-  const mockUseQuery = vi.fn(() => ({
+vi.mock("@apollo/client", () => ({
+  gql: vi.fn((strings: TemplateStringsArray) => strings.join("")),
+  ApolloClient: vi.fn(() => mockApolloClient),
+  InMemoryCache: vi.fn(),
+  createHttpLink: vi.fn(),
+  from: vi.fn(() => mockApolloClient),
+}));
+
+vi.mock("@apollo/client/react", () => ({
+  ApolloProvider: ({ children }: { children: React.ReactNode }) =>
+    React.createElement(React.Fragment, {}, children),
+  useQuery: mockApolloQueryHook,
+  useMutation: mockApolloMutationHook,
+  useLazyQuery: vi.fn(),
+}));
+
+vi.mock("@tanstack/react-query", () => ({
+  QueryClient: vi.fn(() => ({
+    invalidateQueries: vi.fn(),
+    setQueryData: vi.fn(),
+    getQueryData: vi.fn(),
+    clear: vi.fn(),
+  })),
+  QueryClientProvider: ({ children }: { children: React.ReactNode }) =>
+    React.createElement(React.Fragment, {}, children),
+  useQuery: vi.fn(() => ({
     data: undefined,
     isLoading: false,
     isError: false,
     error: undefined,
     refetch: vi.fn(),
-  }));
-  const mockUseMutation = vi.fn(() => ({
+  })),
+  useMutation: vi.fn(() => ({
     mutate: vi.fn(),
     mutateAsync: vi.fn(),
     isLoading: false,
     isError: false,
     error: undefined,
-  }));
-  return {
-    QueryClient: vi.fn(() => ({
-      invalidateQueries: vi.fn(),
-      setQueryData: vi.fn(),
-      getQueryData: vi.fn(),
-      clear: vi.fn(),
-    })),
-    QueryClientProvider: ({ children }: { children: React.ReactNode }) =>
-      React.createElement(React.Fragment, {}, children),
-    useQuery: mockUseQuery,
-    useMutation: mockUseMutation,
-    useQueryClient: vi.fn(() => ({
-      invalidateQueries: vi.fn(),
-      setQueryData: vi.fn(),
-      getQueryData: vi.fn(),
-    })),
-  };
-});
+  })),
+  useQueryClient: vi.fn(() => ({
+    invalidateQueries: vi.fn(),
+    setQueryData: vi.fn(),
+    getQueryData: vi.fn(),
+  })),
+}));
 
-// Global mock for `@mantine/core`
 vi.mock("@mantine/core", () => {
   const createMockComponent = (tag: string, displayName: string) => {
     const Component = React.forwardRef<any, any>((props, ref) => {
@@ -419,7 +432,6 @@ vi.mock("@mantine/core", () => {
   };
 });
 
-// Global mock for `@mantine/dates`
 vi.mock("@mantine/dates", () => {
   const DateInput = React.forwardRef<any, any>((props, ref) => {
     const { label, value, onChange, ...rest } = props;
@@ -456,7 +468,6 @@ vi.mock("@mantine/dates", () => {
   };
 });
 
-// Global mock for `@mantine/form`
 vi.mock("@mantine/form", () => ({
   useForm: vi.fn(
     ({
@@ -503,8 +514,12 @@ vi.mock("@mantine/form", () => ({
             eventOrValue &&
             typeof eventOrValue === "object" &&
             "target" in eventOrValue
-              ? (eventOrValue.target as HTMLInputElement | HTMLTextAreaElement)
-                  .value
+              ? (
+                  eventOrValue.target as
+                    | HTMLInputElement
+                    | HTMLTextAreaElement
+                    | HTMLSelectElement
+                ).value
               : eventOrValue;
           setFieldValue(field, nextValue);
         },
@@ -554,7 +569,6 @@ vi.mock("@mantine/form", () => ({
   ),
 }));
 
-// Global mock for `@mantine/hooks`
 vi.mock("@mantine/hooks", () => ({
   useDisclosure: vi.fn(() => [
     false,
@@ -565,7 +579,6 @@ vi.mock("@mantine/hooks", () => ({
   useDebouncedValue: vi.fn((value) => [value, value]),
 }));
 
-// Global mock for `@mantine/notifications`
 vi.mock("@mantine/notifications", () => ({
   notifications: {
     show: vi.fn(),
@@ -575,10 +588,4 @@ vi.mock("@mantine/notifications", () => ({
   },
   Notifications: ({ children }: { children?: React.ReactNode }) =>
     React.createElement(React.Fragment, {}, children),
-}));
-
-// Global mock for `@taskflow/shared`
-vi.mock("@taskflow/shared", () => ({
-  // Add shared utilities as needed
-  // For now, export empty object - add specific mocks as needed
 }));

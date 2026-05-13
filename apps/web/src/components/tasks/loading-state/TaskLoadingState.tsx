@@ -7,7 +7,7 @@
 import { Group, Loader } from "@mantine/core";
 
 const loadingStateElement = (
-  <Group justify="center" py="xl">
+  <Group justify="center" py="xl" role="status" aria-label="Loading tasks">
     <Loader size="lg" />
   </Group>
 );

@@ -15,11 +15,12 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      "@web": path.resolve(__dirname, "./"),
+      "@web": path.resolve(__dirname, "./src"),
     },
   },
   test: {
     ...reactPreset.test,
+    setupFiles: [path.resolve(__dirname, "./test-setup.ts")],
     isolate: false,
     maxWorkers: 1,
     maxConcurrency: 1,

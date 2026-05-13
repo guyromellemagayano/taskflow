@@ -26,6 +26,41 @@ import {
 import { useToast } from "@web/lib/hooks/useToast";
 import { extractErrorMessage } from "@web/lib/utils/apollo";
 
+function formatDateOnlyValue(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function normalizeDueDateValue(value: unknown) {
+  if (!value) {
+    return null;
+  }
+
+  if (typeof value === "string") {
+    const trimmedValue = value.trim();
+    if (!trimmedValue) {
+      return null;
+    }
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmedValue)) {
+      return trimmedValue;
+    }
+
+    const parsedDate = new Date(trimmedValue);
+    return Number.isNaN(parsedDate.getTime())
+      ? null
+      : formatDateOnlyValue(parsedDate);
+  }
+
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return formatDateOnlyValue(value);
+  }
+
+  return null;
+}
+
 export interface TaskFormProps extends Omit<
   FormHTMLAttributes<HTMLFormElement>,
   "onSubmit"
@@ -64,17 +99,7 @@ export function TaskForm(props: TaskFormProps) {
   const taskId = useMemo(() => task?.id || "", [task?.id]);
 
   const handleSubmit = form.onSubmit(async (values) => {
-    let dueDateValue: string | null = null;
-    if (values.dueDate) {
-      const date =
-        values.dueDate instanceof Date
-          ? values.dueDate
-          : new Date(values.dueDate as string);
-      if (!isNaN(date.getTime())) {
-        const isoString = date.toISOString();
-        dueDateValue = isoString.split("T")[0] ?? null;
-      }
-    }
+    const dueDateValue = normalizeDueDateValue(values.dueDate);
 
     const input: CreateTaskInput | UpdateTaskInput = {
       ...(isEditing && { id: taskId }),
