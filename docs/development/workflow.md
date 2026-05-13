@@ -9,6 +9,16 @@
 5. Run `./scripts/devops/run-make.sh validate` when shared behavior is touched.
 6. When dependency manifests or lockfiles change, confirm the current security posture in `docs/development/dependency-security.md` and re-run the audit commands recorded there.
 
+## Codex Subagent Flow
+
+- Repo-scoped custom agents live in `.codex/agents`.
+- Use subagents only when the user explicitly asks for delegation, parallel agents, or a named custom agent.
+- Keep the parent agent responsible for scope, docs/spec alignment, validation decisions, and final handoff.
+- Prefer read-only subagents for exploration, contract mapping, review, docs research, and risk triage.
+- Use workspace-write subagents only for bounded implementation or release responsibilities with clear file ownership.
+- Do not let subagents bypass `AGENTS.md`, `.cursor/rules/*`, the feature-spec gate, or the active-work gate.
+- If multiple implementation subagents run in parallel, give them disjoint write scopes and tell each one not to revert or overwrite other agents' changes.
+
 ## Release Slice Flow
 
 1. Define or update the intended product surface in `docs/product/features.md`.

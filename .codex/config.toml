@@ -1,0 +1,8 @@
+# TaskFlow custom Codex agent configuration.
+#
+# Keep subagent fan-out shallow by default. TaskFlow's repo workflow expects the
+# parent agent to own scope, docs synchronization, validation, and handoff.
+[agents]
+max_threads = 6
+max_depth = 1
+job_max_runtime_seconds = 1800

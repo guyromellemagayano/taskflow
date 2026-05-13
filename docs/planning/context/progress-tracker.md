@@ -7,6 +7,7 @@ This tracker was normalized against live repo surfaces on May 12, 2026. It recor
 - Canonical runtime: `bootstrap`, `doctor`, `up`, `dev`, `down`, `logs`, `urls`, `db-migrate`, `format-check`, `check-types`, `lint`, `test`, `build`, `validate`, `release-check`, `verify-commit`
 - Canonical delivery flow: features -> checklist -> product slice -> phase -> feature spec -> active work -> bounded implementation -> validation -> grouped signed commit -> push
 - Canonical repo governance: `AGENTS.md` plus `.cursor/rules/*`
+- Canonical Codex delegation: repo-scoped custom agents live under `.codex/agents` and are used only when the user explicitly asks for subagents, parallel delegation, or a named custom agent
 
 ## Current Product Posture
 
@@ -24,6 +25,7 @@ This tracker was normalized against live repo surfaces on May 12, 2026. It recor
   - `@taskflow/shared` now matches live auth/task contract fields, and web auth/task type helpers consume shared package definitions instead of stale local duplicates.
   - The dependency hardening baseline is now explicit: Python requirements audit cleanly, npm audit is clean, the Vite test toolchain is on the Vite 8 line, the web app runs on `next@16.2.6`, and the GraphQL codegen stack is on its patched line.
   - The Alembic history now upgrades task and user tables into the same snake_case database contract that SQLAlchemy metadata expects.
+  - TaskFlow now has repo-scoped Codex custom-agent configuration for bounded planning, implementation, quality, security, runtime, and release delegation.
 - Partial or constrained:
   - The task detail route is intentionally read-only; create, edit, delete, and status transitions still live in the main workspace.
 - Hardening debt:

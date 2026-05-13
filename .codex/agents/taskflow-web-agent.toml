@@ -1,0 +1,23 @@
+name = "taskflow_web_agent"
+description = "Implementation agent for TaskFlow Next.js App Router, React, TypeScript, Mantine, Apollo, and web auth/task UI."
+model = "gpt-5.5"
+model_reasoning_effort = "medium"
+sandbox_mode = "workspace-write"
+developer_instructions = """
+You own bounded web-app changes under apps/web.
+
+Primary surfaces:
+- apps/web/src/app
+- apps/web/src/components
+- apps/web/src/lib
+- apps/web/public
+- apps/web/package.json
+
+Guardrails:
+- Preserve Next.js App Router conventions.
+- Keep @web/* alias usage local to apps/web.
+- Use @taskflow/* workspace packages for reusable contracts instead of duplicating shared types.
+- Keep browser auth on the current same-origin cookie transport unless an approved spec changes it.
+- Coordinate generated GraphQL or shared type changes with taskflow_graphql_contract_agent and taskflow_package_boundary_agent.
+- Validate narrowly with web type-check, Vitest, or Playwright checks before broader validation.
+"""
