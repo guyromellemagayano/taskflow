@@ -4,7 +4,8 @@ from typing import Optional
 from uuid import UUID
 
 import structlog
-from passlib.context import CryptContext
+from argon2 import PasswordHasher
+from argon2.exceptions import Argon2Error, InvalidHashError, VerifyMismatchError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -12,21 +13,11 @@ from app.models.user import User
 
 logger = structlog.get_logger(__name__)
 
-# Password hashing context
-# Using Argon2id (recommended variant) with reasonable defaults
-# - time_cost: Number of iterations (higher = more secure but slower)
-# - memory_cost: Memory usage in KB (higher = more secure but uses more RAM)
-# - parallelism: Number of parallel threads
-# Argon2 supports passwords up to 2^32-1 bytes (effectively unlimited)
-# Including "bcrypt" in schemes allows verification of existing bcrypt hashes during migration
-# New passwords will use Argon2 (first scheme in list)
-pwd_context = CryptContext(
-    schemes=["argon2", "bcrypt"],  # Argon2 for new passwords, bcrypt for legacy verification
-    deprecated="auto",
-    argon2__type="id",  # Use Argon2id (recommended hybrid variant) - valid values: 'id', 'i', 'd'
-    argon2__time_cost=2,  # 2 iterations (reasonable for most apps)
-    argon2__memory_cost=65536,  # 64 MB (reasonable for most apps)
-    argon2__parallelism=1,  # Single thread (adjust if needed)
+# Password hashing context using Argon2id with explicit operational parameters.
+password_hasher = PasswordHasher(
+    time_cost=2,
+    memory_cost=65536,
+    parallelism=1,
 )
 
 
@@ -85,7 +76,7 @@ async def create_user(db: AsyncSession, email: str, password: str) -> User:
         raise ValueError(f"User with email {email} already exists")
 
     # Hash password (Argon2 supports passwords up to 2^32-1 bytes)
-    password_hash = pwd_context.hash(password)
+    password_hash = hash_password(password)
 
     # Create user
     user = User(email=email, password_hash=password_hash)
@@ -108,7 +99,18 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     Returns:
         True if password matches, False otherwise
     """
-    return pwd_context.verify(plain_password, hashed_password)
+    try:
+        return password_hasher.verify(hashed_password, plain_password)
+    except VerifyMismatchError:
+        return False
+    except (InvalidHashError, Argon2Error):
+        logger.warning("Invalid password hash encountered during verification")
+        return False
+
+
+def hash_password(password: str) -> str:
+    """Hash a plaintext password with Argon2id."""
+    return password_hasher.hash(password)
 
 
 async def update_user(db: AsyncSession, userId: UUID, **kwargs) -> Optional[User]:
@@ -152,7 +154,7 @@ async def change_password(db: AsyncSession, userId: UUID, new_password: str) -> 
         True if password was changed, False if user not found
     """
     # Hash password (Argon2 supports passwords up to 2^32-1 bytes)
-    password_hash = pwd_context.hash(new_password)
+    password_hash = hash_password(new_password)
     user = await update_user(db, userId, password_hash=password_hash)
 
     if user:

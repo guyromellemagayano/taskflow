@@ -2,6 +2,8 @@
 TaskFlow FastAPI Application Entry Point
 """
 
+from contextlib import asynccontextmanager
+
 import structlog
 from app.auth.routes import router as auth_router
 from app.cache import close_redis, get_redis
@@ -18,10 +20,24 @@ from strawberry.fastapi import GraphQLRouter
 
 logger = structlog.get_logger(__name__)
 
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    """Initialize and cleanup runtime services."""
+    await get_redis()
+    logger.info("Application startup complete")
+    try:
+        yield
+    finally:
+        await close_redis()
+        logger.info("Application shutdown complete")
+
+
 app = FastAPI(
     title="TaskFlow API",
     description="TaskFlow GraphQL API",
     version="0.1.0",
+    lifespan=lifespan,
 )
 
 
@@ -71,21 +87,6 @@ app.include_router(graphql_app, prefix="/graphql")
 
 # Auth routes
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
-
-
-@app.on_event("startup")
-async def startup_event():
-    """Initialize services on startup"""
-    # Initialize Redis connection pool
-    await get_redis()
-    logger.info("Application startup complete")
-
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Cleanup on shutdown"""
-    await close_redis()
-    logger.info("Application shutdown complete")
 
 
 @app.get("/")
