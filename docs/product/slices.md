@@ -28,9 +28,9 @@ This document defines the release slices that describe TaskFlow's product and pl
 
 ## Slice 5: Background Analytics Scaffold
 
-- Status: `Partial`
-- Outcome: the worker can schedule analytics aggregation work, but analytics computation is still scaffolding rather than a finished product surface
-- Primary surfaces: `apps/worker/main.py`, `apps/worker/tasks/analytics.py`
+- Status: `Shipped`
+- Outcome: the worker now computes hourly system-level task analytics snapshots and persists the latest snapshot plus rolling history in Redis
+- Primary surfaces: `apps/worker/main.py`, `apps/worker/tasks/analytics.py`, `apps/worker/services/analytics.py`
 
 ## Slice 6: Monorepo Workflow Overhaul
 

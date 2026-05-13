@@ -50,8 +50,8 @@ This file defines the canonical TaskFlow product surface as of May 12, 2026. It 
 
 ### Background Processing
 
-- A Celery worker and beat schedule exist for hourly analytics aggregation.
-- Background analytics are currently a platform scaffold, not a finished user-facing feature.
+- A Celery worker and beat schedule run hourly task analytics aggregation.
+- The worker computes system-level task snapshots from Postgres and persists the latest snapshot plus rolling history in Redis for future operational consumers.
 
 ## Not Yet Part Of The Canonical Product Surface
 
