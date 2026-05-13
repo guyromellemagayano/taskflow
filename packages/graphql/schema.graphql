@@ -52,7 +52,7 @@ type Query {
 }
 
 input RefreshTokenInput {
-  refreshToken: String!
+  refreshToken: String = null
 }
 
 input RegisterInput {

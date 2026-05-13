@@ -20,15 +20,11 @@ import { gql } from "@apollo/client";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { useRouter } from "next/navigation";
 
+import type { AuthPayload, User } from "@taskflow/shared";
+
 import { extractErrorMessage } from "@web/lib/utils/apollo";
 
-import {
-  clearTokens,
-  getAccessToken,
-  getRefreshToken,
-  setAccessToken,
-  setRefreshToken,
-} from "./utils";
+import { clearTokens, getRefreshToken } from "./utils";
 
 // GraphQL queries and mutations
 const ME_QUERY = gql`
@@ -89,20 +85,8 @@ const LOGOUT_MUTATION = gql`
   }
 `;
 
-interface User {
-  id: string;
-  email: string;
-  createdAt: string;
-}
-
 interface MeQueryData {
   me: User;
-}
-
-interface AuthPayload {
-  accessToken: string;
-  refreshToken: string;
-  user: User;
 }
 
 interface LoginMutationData {
@@ -143,7 +127,6 @@ export const AuthProvider = function ({ children }: { children: ReactNode }) {
     error: meError,
     refetch: refetchMe,
   } = useQuery<MeQueryData>(ME_QUERY, {
-    skip: !getAccessToken(), // Skip if no token
     errorPolicy: "all",
     fetchPolicy: "network-only", // Always fetch fresh data
   });
@@ -151,9 +134,8 @@ export const AuthProvider = function ({ children }: { children: ReactNode }) {
   // Login mutation
   const [loginMutation] = useMutation<LoginMutationData>(LOGIN_MUTATION, {
     onCompleted: (data) => {
-      const { accessToken, refreshToken, user } = data.login;
-      setAccessToken(accessToken);
-      setRefreshToken(refreshToken);
+      const { user } = data.login;
+      clearTokens();
       setUser(user);
       router.push("/");
     },
@@ -170,11 +152,8 @@ export const AuthProvider = function ({ children }: { children: ReactNode }) {
     REGISTER_MUTATION,
     {
       onCompleted: (data) => {
-        const { accessToken, refreshToken, user } = data.register;
-        // Store tokens in `localStorage` as fallback (cookies are set by REST endpoint)
-        // For GraphQL, we store in `localStorage` since GraphQL can't set cookies directly
-        setAccessToken(accessToken);
-        setRefreshToken(refreshToken);
+        const { user } = data.register;
+        clearTokens();
         setUser(user);
         router.push("/");
       },
@@ -192,9 +171,9 @@ export const AuthProvider = function ({ children }: { children: ReactNode }) {
     REFRESH_TOKEN_MUTATION,
     {
       onCompleted: (data) => {
-        const { accessToken, refreshToken } = data.refreshToken;
-        setAccessToken(accessToken);
-        setRefreshToken(refreshToken);
+        const { user } = data.refreshToken;
+        clearTokens();
+        setUser(user);
         // Refetch user data
         refetchMe();
       },
@@ -255,21 +234,14 @@ export const AuthProvider = function ({ children }: { children: ReactNode }) {
   /** Logout function */
   const logout = useCallback(async () => {
     const refreshToken = getRefreshToken();
-    if (refreshToken) {
-      await logoutMutation({
-        variables: {
-          input: {
-            refreshToken,
-          },
+    await logoutMutation({
+      variables: {
+        input: {
+          ...(refreshToken && { refreshToken }),
         },
-      });
-    } else {
-      // If no refresh token, just clear local state
-      clearTokens();
-      setUser(null);
-      router.push("/login");
-    }
-  }, [logoutMutation, router]);
+      },
+    });
+  }, [logoutMutation]);
 
   /** Refresh token function with race condition prevention */
   const refreshToken = useCallback(async () => {
@@ -279,17 +251,13 @@ export const AuthProvider = function ({ children }: { children: ReactNode }) {
     }
 
     const refreshTokenValue = getRefreshToken();
-    if (!refreshTokenValue) {
-      throw new Error("No refresh token available");
-    }
-
     // Create a promise for this refresh operation
     const refreshPromise = (async () => {
       try {
         await refreshTokenMutation({
           variables: {
             input: {
-              refreshToken: refreshTokenValue,
+              ...(refreshTokenValue && { refreshToken: refreshTokenValue }),
             },
           },
         });
@@ -311,7 +279,6 @@ export const AuthProvider = function ({ children }: { children: ReactNode }) {
 
   // Update user when me query completes or errors
   const meUser = meData?.me;
-  const hasAccessToken = Boolean(getAccessToken());
   const isUnauthorizedError = Boolean(
     meError &&
     ((
@@ -338,16 +305,12 @@ export const AuthProvider = function ({ children }: { children: ReactNode }) {
       }
       setUser(null);
       setLoading(false);
-    } else if (!meLoading && !hasAccessToken) {
-      setUser(null);
-      setLoading(false);
-    } else if (!meLoading && meData && !meData.me) {
-      // Query completed but no user data
+    } else if (!meLoading && !meData?.me) {
       setUser(null);
       clearTokens();
       setLoading(false);
     }
-  }, [meUser, meLoading, meError, isUnauthorizedError, hasAccessToken, meData]);
+  }, [meUser, meLoading, meError, isUnauthorizedError, meData]);
 
   const value: AuthContextType = {
     user,

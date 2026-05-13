@@ -5,6 +5,9 @@ const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === "true",
 });
 
+const API_ORIGIN =
+  process.env.TASKFLOW_API_ORIGIN || "http://api.localhost:8000";
+
 const nextConfig: NextConfig = {
   transpilePackages: ["@taskflow/shared", "@apollo/client"],
   output: "standalone",
@@ -22,6 +25,26 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   experimental: {
     optimizePackageImports: ["@tabler/icons-react"],
+  },
+  async rewrites() {
+    return [
+      {
+        source: "/api",
+        destination: `${API_ORIGIN}/api`,
+      },
+      {
+        source: "/api/:path*",
+        destination: `${API_ORIGIN}/:path*`,
+      },
+      {
+        source: "/graphql",
+        destination: `${API_ORIGIN}/graphql`,
+      },
+      {
+        source: "/graphql/:path*",
+        destination: `${API_ORIGIN}/graphql/:path*`,
+      },
+    ];
   },
 };
 

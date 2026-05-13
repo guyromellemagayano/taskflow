@@ -4,8 +4,7 @@
  * @description REST API client utilities for TanStack Query
  */
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://api.localhost:8000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
 const TOKEN_KEY = "taskflow_access_token";
 const CONTENT_TYPE_HEADER = "Content-Type";
 const CONTENT_TYPE_JSON = "application/json";
@@ -67,9 +66,15 @@ export async function apiFetch<T>(
   endpoint: string,
   options?: RequestInit
 ): Promise<T> {
+  const normalizedEndpoint = endpoint.startsWith("/")
+    ? endpoint
+    : `/${endpoint}`;
+  const normalizedBaseUrl = API_BASE_URL.replace(/\/$/, "");
   const url = endpoint.startsWith("http")
     ? endpoint
-    : `${API_BASE_URL}${endpoint}`;
+    : normalizedBaseUrl === "/api" && normalizedEndpoint === "/api"
+      ? "/api"
+      : `${normalizedBaseUrl}${normalizedEndpoint}`;
 
   const response = await fetch(url, {
     ...options,

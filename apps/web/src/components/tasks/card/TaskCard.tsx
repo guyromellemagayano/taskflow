@@ -66,7 +66,13 @@ function TaskCardComponent(props: TaskCardProps) {
   }, [onStatusChange]);
 
   return (
-    <Paper p="md" withBorder {...rest}>
+    <Paper
+      component="article"
+      aria-label={`Task: ${task.title || task.id}`}
+      p="md"
+      withBorder
+      {...rest}
+    >
       <Group justify="space-between" align="flex-start">
         <Stack gap="xs" style={{ flex: 1 }}>
           <Group gap="sm">

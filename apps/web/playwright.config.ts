@@ -18,7 +18,8 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "pnpm exec next dev --port 3000 --turbopack --hostname 127.0.0.1",
+    command:
+      "NEXT_PUBLIC_API_URL=/api NEXT_PUBLIC_GRAPHQL_URL=/graphql pnpm exec next dev --port 3000 --turbopack --hostname 127.0.0.1",
     url: "http://127.0.0.1:3000",
     reuseExistingServer: !process.env.CI,
   },

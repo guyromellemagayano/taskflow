@@ -29,7 +29,7 @@ This file defines the canonical TaskFlow product surface as of May 12, 2026. It 
 - Email-and-password login is available from the web app.
 - The web app restores the current user through the `me` GraphQL query.
 - Refresh-token rotation and logout are part of the current auth contract.
-- The repo currently carries both GraphQL auth mutations and REST auth endpoints because browser token persistence and cookie transport are not yet unified behind one path.
+- GraphQL and REST auth surfaces share same-origin browser cookie transport, with bearer-token support retained for legacy and non-browser clients.
 
 ### Task Workspace
 
@@ -56,4 +56,3 @@ This file defines the canonical TaskFlow product surface as of May 12, 2026. It 
 ## Not Yet Part Of The Canonical Product Surface
 
 - User-facing analytics dashboards or reports.
-- Deep authenticated browser coverage for task CRUD, pagination, and detail transitions beyond the current smoke baseline.

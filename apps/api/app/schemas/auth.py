@@ -21,4 +21,4 @@ class TokenResponse(BaseModel):
 class RefreshTokenRequest(BaseModel):
     """Refresh token request schema"""
 
-    refresh_token: str
+    refresh_token: str | None = None

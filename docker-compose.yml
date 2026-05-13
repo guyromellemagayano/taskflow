@@ -20,6 +20,11 @@ services:
               service: api
               entryPoints: [web]
               priority: 25
+            graphql:
+              rule: "Path(`/graphql`) || PathPrefix(`/graphql/`)"
+              service: api
+              entryPoints: [web]
+              priority: 25
             api-prefix:
               rule: "PathPrefix(`/api/`)"
               service: api
@@ -145,6 +150,10 @@ services:
       - "traefik.http.routers.api-exact.entrypoints=web"
       - "traefik.http.routers.api-exact.service=api"
       - "traefik.http.routers.api-exact.priority=25"
+      - "traefik.http.routers.graphql.rule=Path(`/graphql`) || PathPrefix(`/graphql/`)"
+      - "traefik.http.routers.graphql.entrypoints=web"
+      - "traefik.http.routers.graphql.service=api"
+      - "traefik.http.routers.graphql.priority=25"
       - "traefik.http.routers.api-prefix.rule=PathPrefix(`/api/`)"
       - "traefik.http.routers.api-prefix.entrypoints=web"
       - "traefik.http.routers.api-prefix.service=api"
@@ -179,8 +188,8 @@ services:
     container_name: taskflow-web
     environment:
       NODE_ENV: production
-      NEXT_PUBLIC_API_URL: http://api.localhost:8000
-      NEXT_PUBLIC_GRAPHQL_URL: http://api.localhost:8000/graphql
+      NEXT_PUBLIC_API_URL: /api
+      NEXT_PUBLIC_GRAPHQL_URL: /graphql
     depends_on:
       - api
       - traefik

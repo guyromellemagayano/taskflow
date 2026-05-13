@@ -2,21 +2,40 @@
 
 from typing import Optional
 
-from fastapi import Request
+from fastapi import Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from strawberry.fastapi import BaseContext
 
+from app.auth.cookies import (
+    clear_auth_cookies,
+    get_access_token_cookie,
+    get_refresh_token_cookie,
+    set_auth_cookies,
+)
 from app.models.user import User
 
 
 class GraphQLContext(BaseContext):
     """GraphQL context with database session and optional user"""
 
-    def __init__(self, request: Request):
+    def __init__(self, request: Request, response: Response):
         super().__init__()
         self.request = request
+        self.response = response
         self._db: Optional[AsyncSession] = None
         self._user: Optional[User] = None
+
+    def get_refresh_token_cookie(self) -> Optional[str]:
+        """Read the refresh-token cookie for GraphQL auth mutations."""
+        return get_refresh_token_cookie(self.request)
+
+    def set_auth_cookies(self, access_token: str, refresh_token: str) -> None:
+        """Set auth cookies on the current GraphQL response."""
+        set_auth_cookies(self.response, access_token, refresh_token)
+
+    def clear_auth_cookies(self) -> None:
+        """Clear auth cookies on the current GraphQL response."""
+        clear_auth_cookies(self.response)
 
     async def get_db(self) -> AsyncSession:
         """
@@ -65,12 +84,14 @@ class GraphQLContext(BaseContext):
         if self._user is not None:
             return self._user
 
-        # Try to get user from Authorization header
+        # Bearer tokens remain supported for non-browser clients and legacy
+        # localStorage sessions. Browser sessions use httpOnly cookies.
         auth_header = self.request.headers.get("Authorization")
-        if not auth_header or not auth_header.startswith("Bearer "):
-            return None
-
-        token = auth_header.replace("Bearer ", "")
+        token: Optional[str] = None
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.replace("Bearer ", "")
+        if not token:
+            token = get_access_token_cookie(self.request)
         if not token:
             return None
 
@@ -107,6 +128,6 @@ class GraphQLContext(BaseContext):
         return user
 
 
-def get_context(request: Request) -> GraphQLContext:
+def get_context(request: Request, response: Response) -> GraphQLContext:
     """Get GraphQL context from request"""
-    return GraphQLContext(request)
+    return GraphQLContext(request, response)

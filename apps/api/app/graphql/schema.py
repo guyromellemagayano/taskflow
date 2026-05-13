@@ -306,7 +306,7 @@ class LoginInput:
 class RefreshTokenInput:
     """Input for token refresh"""
 
-    refresh_token: str
+    refresh_token: Optional[str] = None
 
 
 @strawberry.type
@@ -466,6 +466,7 @@ class Mutation:
         # Create tokens and store refresh token
 
         access_token, refresh_token = await create_auth_tokens_for_user(str(user.id), user.email)
+        info.context.set_auth_cookies(access_token, refresh_token)
 
         return AuthPayload(
             access_token=access_token,
@@ -507,6 +508,7 @@ class Mutation:
         from app.auth.jwt import create_auth_tokens_for_user
 
         access_token, refresh_token = await create_auth_tokens_for_user(str(user.id), user.email)
+        info.context.set_auth_cookies(access_token, refresh_token)
 
         return AuthPayload(
             access_token=access_token,
@@ -537,12 +539,14 @@ class Mutation:
         # We'll implement rate limiting via Redis in the cache layer if needed
         # For now, we rely on the REST endpoint rate limiting
 
+        refresh_token = input.refresh_token or info.context.get_refresh_token_cookie()
+
         # Verify refresh token
-        if not input.refresh_token:
+        if not refresh_token:
             logger.warning("Refresh token mutation called without token")
             raise ValueError("Refresh token is required")
 
-        payload = verify_token(input.refresh_token, token_type="refresh")
+        payload = verify_token(refresh_token, token_type="refresh")
 
         # Validate payload
         userId_str = payload.get("sub")
@@ -552,18 +556,18 @@ class Mutation:
             raise AuthenticationError("Invalid token payload")
 
         # Check if token is revoked
-        if await is_token_revoked(userId_str, input.refresh_token):
+        if await is_token_revoked(userId_str, refresh_token):
             logger.warning("Refresh token revoked", userId=userId_str)
             raise AuthenticationError("Token has been revoked")
 
         # Verify token exists in Redis
-        stored_token = await get_refresh_token(userId_str, input.refresh_token)
+        stored_token = await get_refresh_token(userId_str, refresh_token)
         if not stored_token:
             logger.warning("Invalid refresh token", userId=userId_str)
             raise AuthenticationError("Invalid refresh token")
 
         # Token rotation: Delete old refresh token
-        await delete_refresh_token(userId_str, input.refresh_token)
+        await delete_refresh_token(userId_str, refresh_token)
 
         # Get user from database
         userId = UUID(userId_str)
@@ -579,6 +583,7 @@ class Mutation:
         from app.auth.jwt import create_auth_tokens_for_user
 
         access_token, new_refresh_token = await create_auth_tokens_for_user(userId_str, email)
+        info.context.set_auth_cookies(access_token, new_refresh_token)
 
         return AuthPayload(
             access_token=access_token,
@@ -597,26 +602,31 @@ class Mutation:
         from app.cache import revoke_refresh_token
         from app.core.config import settings
 
-        if not input.refresh_token:
+        refresh_token = input.refresh_token or info.context.get_refresh_token_cookie()
+
+        if not refresh_token:
+            info.context.clear_auth_cookies()
             return False
 
         # Verify token to get userId
         try:
-            payload = verify_token_safe(input.refresh_token, token_type="refresh")
+            payload = verify_token_safe(refresh_token, token_type="refresh")
             userId = payload.get("sub")
 
             if userId:
                 # Revoke the refresh token
                 await revoke_refresh_token(
                     userId,
-                    input.refresh_token,
+                    refresh_token,
                     expires_in_days=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS,
                 )
+                info.context.clear_auth_cookies()
                 return True
         except Exception:
             # If token is invalid, still return success (idempotent)
             pass
 
+        info.context.clear_auth_cookies()
         return False
 
 

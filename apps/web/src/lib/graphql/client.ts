@@ -4,8 +4,7 @@ import { HttpLink } from "@apollo/client/link/http";
 
 import { getAccessToken } from "@web/lib/auth/utils";
 
-const GRAPHQL_URI =
-  process.env.NEXT_PUBLIC_GRAPHQL_URL || "http://api.localhost:8000/graphql";
+const GRAPHQL_URI = process.env.NEXT_PUBLIC_GRAPHQL_URL || "/graphql";
 
 // HTTP link to GraphQL endpoint
 // credentials: "include" ensures cookies are sent with requests
@@ -14,9 +13,8 @@ const httpLink = new HttpLink({
   credentials: "include", // Required for httpOnly cookies
 });
 
-/** Auth link to add token to requests */
+/** Add legacy bearer tokens for non-cookie sessions when present. */
 const authLink = new SetContextLink((prevContext) => {
-  // Get access token from cache (avoids expensive `localStorage` reads)
   const token = getAccessToken();
 
   return {
