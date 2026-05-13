@@ -7,6 +7,7 @@ import strawberry
 from strawberry.types import Info
 
 from app.graphql.context import GraphQLContext
+from app.models.task import TaskPriority, TaskStatus
 
 # Phase 1: Basic GraphQL types and stub resolvers
 # Phase 2: Will add actual database queries
@@ -105,6 +106,42 @@ class TaskFilters:
     search: Optional[str] = None
 
 
+def _normalize_task_status(value: Optional[str]) -> TaskStatus:
+    """Normalize task status input into a valid TaskStatus enum.
+
+    Accepts lowercase, uppercase, and whitespace variants such as "TODO" and
+    "in_progress". Raises ValueError for invalid values.
+    """
+
+    if value is None:
+        return TaskStatus.TODO
+
+    normalized = str(value).strip().lower().replace("-", "_").replace(" ", "_")
+    if not normalized:
+        return TaskStatus.TODO
+
+    try:
+        return TaskStatus(normalized)
+    except ValueError as exc:
+        raise ValueError(f"Invalid status: {value}") from exc
+
+
+def _normalize_task_priority(value: Optional[str]) -> TaskPriority:
+    """Normalize task priority input into a valid TaskPriority enum."""
+
+    if value is None:
+        return TaskPriority.MEDIUM
+
+    normalized = str(value).strip().lower().replace("-", "_").replace(" ", "_")
+    if not normalized:
+        return TaskPriority.MEDIUM
+
+    try:
+        return TaskPriority(normalized)
+    except ValueError as exc:
+        raise ValueError(f"Invalid priority: {value}") from exc
+
+
 @strawberry.type
 class Query:
     """GraphQL Query type"""
@@ -120,8 +157,6 @@ class Query:
         offset: int = 0,
     ) -> TasksConnection:
         """Get tasks with filtering, sorting, and pagination"""
-
-        from app.models.task import TaskPriority, TaskStatus
         from app.services.task_service import count_tasks, get_tasks
 
         # Require authentication
@@ -131,14 +166,14 @@ class Query:
         status = None
         if filters and filters.status:
             try:
-                status = TaskStatus(filters.status)
+                status = _normalize_task_status(filters.status)
             except ValueError:
                 raise ValueError(f"Invalid status: {filters.status}")
 
         priority = None
         if filters and filters.priority:
             try:
-                priority = TaskPriority(filters.priority)
+                priority = _normalize_task_priority(filters.priority)
             except ValueError:
                 raise ValueError(f"Invalid priority: {filters.priority}")
 
@@ -290,26 +325,14 @@ class Mutation:
     @strawberry.mutation
     async def create_task(self, input: CreateTaskInput, info: Info[GraphQLContext, None]) -> Task:
         """Create a new task"""
-        from app.models.task import TaskPriority, TaskStatus
         from app.services.task_service import create_task
 
         # Require authentication
         user = await info.context.require_user()
 
         # Parse status and priority
-        status = TaskStatus.TODO
-        if input.status:
-            try:
-                status = TaskStatus(input.status)
-            except ValueError:
-                raise ValueError(f"Invalid status: {input.status}")
-
-        priority = TaskPriority.MEDIUM
-        if input.priority:
-            try:
-                priority = TaskPriority(input.priority)
-            except ValueError:
-                raise ValueError(f"Invalid priority: {input.priority}")
+        status = _normalize_task_status(input.status)
+        priority = _normalize_task_priority(input.priority)
 
         # Create task
         db = await info.context.get_db()
@@ -332,7 +355,6 @@ class Mutation:
         """Update a task"""
         from uuid import UUID
 
-        from app.models.task import TaskPriority, TaskStatus
         from app.services.task_service import update_task
 
         # Require authentication
@@ -349,18 +371,12 @@ class Mutation:
 
         # Parse status and priority if provided
         status = None
-        if input.status:
-            try:
-                status = TaskStatus(input.status)
-            except ValueError:
-                raise ValueError(f"Invalid status: {input.status}")
+        if input.status is not None and str(input.status).strip():
+            status = _normalize_task_status(input.status)
 
         priority = None
-        if input.priority:
-            try:
-                priority = TaskPriority(input.priority)
-            except ValueError:
-                raise ValueError(f"Invalid priority: {input.priority}")
+        if input.priority is not None and str(input.priority).strip():
+            priority = _normalize_task_priority(input.priority)
 
         # Update task
         db = await info.context.get_db()
