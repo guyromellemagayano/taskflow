@@ -6,6 +6,13 @@
 
 import { gql } from "@apollo/client";
 
+import type {
+  CreateTaskInput as SharedCreateTaskInput,
+  Task as SharedTask,
+  TaskFilters as SharedTaskFilters,
+  UpdateTaskInput as SharedUpdateTaskInput,
+} from "@taskflow/shared";
+
 /** Get tasks query with filters, sorting, and pagination */
 export const GET_TASKS_QUERY = gql`
   query GetTasks(
@@ -100,17 +107,8 @@ export const DELETE_TASK_MUTATION = gql`
 `;
 
 /** Task type definitions */
-export interface Task {
+export interface Task extends SharedTask {
   __typename?: "Task";
-  id: string;
-  title: string;
-  description: string | null;
-  status: "todo" | "in_progress" | "done";
-  priority: "low" | "medium" | "high";
-  dueDate: string | null;
-  userId: string;
-  createdAt: string;
-  updatedAt: string;
 }
 
 /** Paginated task list response */
@@ -124,29 +122,10 @@ export interface TasksConnection {
 }
 
 /** Task filters */
-export interface TaskFilters {
-  status?: "todo" | "in_progress" | "done";
-  priority?: "low" | "medium" | "high";
-  dueDate_from?: string;
-  dueDate_to?: string;
-  search?: string;
-}
+export interface TaskFilters extends SharedTaskFilters {}
 
 /** Create task input */
-export interface CreateTaskInput {
-  title: string;
-  description?: string | null;
-  status?: "todo" | "in_progress" | "done";
-  priority?: "low" | "medium" | "high";
-  dueDate?: string | null;
-}
+export type CreateTaskInput = SharedCreateTaskInput;
 
 /** Update task input */
-export interface UpdateTaskInput {
-  id: string;
-  title?: string | null;
-  description?: string | null;
-  status?: "todo" | "in_progress" | "done";
-  priority?: "low" | "medium" | "high";
-  dueDate?: string | null;
-}
+export type UpdateTaskInput = SharedUpdateTaskInput;

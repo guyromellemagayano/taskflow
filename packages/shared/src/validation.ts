@@ -55,23 +55,43 @@ export const UpdateTaskSchema = z.object({
     .nullable(),
 });
 
+/** Task filters schema */
+export const TaskFiltersSchema = z.object({
+  status: TaskStatusSchema.optional(),
+  priority: TaskPrioritySchema.optional(),
+  dueDateFrom: z
+    .string()
+    .regex(dateRegex, "Invalid date format. Expected YYYY-MM-DD format.")
+    .optional()
+    .nullable(),
+  dueDateTo: z
+    .string()
+    .regex(dateRegex, "Invalid date format. Expected YYYY-MM-DD format.")
+    .optional()
+    .nullable(),
+  search: z.string().optional(),
+});
+
 /** Register user schema */
 export const RegisterUserSchema = z.object({
-  email: z.email({ message: "Invalid email address" }),
+  email: z.string().email({ message: "Invalid email address" }),
   password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
 /** Login input type */
-export type LoginInput = z.infer<typeof LoginSchema>;
+export type LoginValidationInput = z.infer<typeof LoginSchema>;
 
 /** Refresh token input type */
-export type RefreshTokenInput = z.infer<typeof RefreshTokenSchema>;
+export type RefreshTokenValidationInput = z.infer<typeof RefreshTokenSchema>;
 
 /** Create task input type */
-export type CreateTaskInput = z.infer<typeof CreateTaskSchema>;
+export type CreateTaskValidationInput = z.infer<typeof CreateTaskSchema>;
 
 /** Update task input type */
-export type UpdateTaskInput = z.infer<typeof UpdateTaskSchema>;
+export type UpdateTaskValidationInput = z.infer<typeof UpdateTaskSchema>;
+
+/** Task filters input type */
+export type TaskFiltersValidationInput = z.infer<typeof TaskFiltersSchema>;
 
 /** Register user input type */
-export type RegisterUserInput = z.infer<typeof RegisterUserSchema>;
+export type RegisterUserValidationInput = z.infer<typeof RegisterUserSchema>;
