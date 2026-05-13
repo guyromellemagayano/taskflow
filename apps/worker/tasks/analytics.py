@@ -2,8 +2,12 @@
 Analytics aggregation tasks
 """
 
+import asyncio
+
 from celery import shared_task
 import structlog
+
+from services.analytics import run_task_analytics_aggregation
 
 logger = structlog.get_logger(__name__)
 
@@ -16,10 +20,13 @@ def aggregate_task_analytics(self) -> dict:
     """
     try:
         logger.info("Starting task analytics aggregation")
-        # TODO: Implement analytics aggregation logic
-        # This will query the database and aggregate task statistics
-        logger.info("Task analytics aggregation completed")
-        return {"status": "success"}
+        snapshot = asyncio.run(run_task_analytics_aggregation())
+        logger.info(
+            "Task analytics aggregation completed",
+            generated_at=snapshot["generatedAt"],
+            total_tasks=snapshot["totals"]["tasks"],
+        )
+        return snapshot
     except Exception as exc:
         logger.exception("Error aggregating task analytics", exc_info=exc)
         # Retry with exponential backoff
