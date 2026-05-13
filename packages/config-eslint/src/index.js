@@ -19,12 +19,25 @@ import unusedImports from "eslint-plugin-unused-imports";
 const fileName = fileURLToPath(import.meta.url);
 const dirName = dirname(fileName);
 const repoRoot = resolve(dirName, "..", "..", "..");
+const astroParser = await import("astro-eslint-parser")
+  .then((module) => module.default || module)
+  .catch(() => null);
 const tsProjects = [
   resolve(repoRoot, "tsconfig.json"),
   resolve(repoRoot, "apps", "web", "tsconfig.json"),
   resolve(repoRoot, "packages", "shared", "tsconfig.json"),
   resolve(repoRoot, "packages", "ui", "tsconfig.json"),
   resolve(repoRoot, "packages", "graphql", "tsconfig.json"),
+];
+const importSortGroups = [
+  ["^node:"],
+  ["^react$", "^react-dom$", "^react\\b"],
+  ["^@(?!taskflow|api/|worker/|web/).+", "^[a-z]"],
+  ["^@taskflow/", "^~"],
+  ["^@api/"],
+  ["^@web/"],
+  ["^@worker/"],
+  ["^\\."],
 ];
 
 /**
@@ -72,16 +85,7 @@ export const baseEslintConfig = [
       "simple-import-sort/imports": [
         "error",
         {
-          groups: [
-            ["^node:"],
-            ["^react$", "^react-dom$", "^react\\b"],
-            ["^@(?!taskflow|api/|worker/|web/).+", "^[a-z]"],
-            ["^@taskflow/", "^~"],
-            ["^@api/"],
-            ["^@web/"],
-            ["^@worker/"],
-            ["^\\."],
-          ],
+          groups: importSortGroups,
         },
       ],
       "simple-import-sort/exports": "error",
@@ -180,4 +184,27 @@ export const baseEslintConfig = [
       ],
     },
   },
+  ...(astroParser
+    ? [
+        {
+          files: ["**/*.astro"],
+          languageOptions: {
+            parser: astroParser,
+            parserOptions: {
+              parser: typescriptParser,
+              sourceType: "module",
+              ecmaVersion: "latest",
+              extraFileExtensions: [".astro"],
+            },
+          },
+          rules: {
+            "simple-import-sort/imports": [
+              "error",
+              { groups: importSortGroups },
+            ],
+            "simple-import-sort/exports": "error",
+          },
+        },
+      ]
+    : []),
 ];
