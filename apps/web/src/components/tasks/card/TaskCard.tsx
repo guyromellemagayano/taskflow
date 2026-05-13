@@ -19,6 +19,7 @@ import {
   Text,
 } from "@mantine/core";
 import { IconCheck, IconEdit, IconTrash, IconX } from "@tabler/icons-react";
+import Link from "next/link";
 
 import { PRIORITY_COLORS, STATUS_COLORS } from "@web/lib/constants/tasks";
 import { type Task } from "@web/lib/graphql/tasks";
@@ -69,7 +70,13 @@ function TaskCardComponent(props: TaskCardProps) {
       <Group justify="space-between" align="flex-start">
         <Stack gap="xs" style={{ flex: 1 }}>
           <Group gap="sm">
-            <Text fw={500}>{task.title}</Text>
+            {task.title ? (
+              <Text component={Link} href={`/tasks/${task.id}`} fw={500}>
+                {task.title}
+              </Text>
+            ) : (
+              <Text fw={500}>{task.title}</Text>
+            )}
             <Badge color={STATUS_COLORS[task.status]} variant="light">
               {statusLabel}
             </Badge>
@@ -96,7 +103,11 @@ function TaskCardComponent(props: TaskCardProps) {
         <Group gap="xs">
           <Menu>
             <Menu.Target>
-              <ActionIcon variant="subtle" disabled={updating}>
+              <ActionIcon
+                variant="subtle"
+                disabled={updating}
+                aria-label="Open task actions"
+              >
                 <IconEdit size={16} />
               </ActionIcon>
             </Menu.Target>
@@ -118,6 +129,7 @@ function TaskCardComponent(props: TaskCardProps) {
               variant="light"
               onClick={handleMarkDone}
               disabled={updating}
+              aria-label="Mark task as done"
             >
               <IconCheck size={16} />
             </ActionIcon>
@@ -129,6 +141,7 @@ function TaskCardComponent(props: TaskCardProps) {
               variant="light"
               onClick={handleStart}
               disabled={updating}
+              aria-label="Start task"
             >
               Start
             </ActionIcon>
@@ -140,6 +153,7 @@ function TaskCardComponent(props: TaskCardProps) {
               variant="light"
               onClick={handleRevert}
               disabled={updating}
+              aria-label="Move task back to todo"
             >
               <IconX size={16} />
             </ActionIcon>

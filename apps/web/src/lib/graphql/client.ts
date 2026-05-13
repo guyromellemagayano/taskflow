@@ -35,9 +35,9 @@ export const apolloClient = new ApolloClient({
       Query: {
         fields: {
           tasks: {
-            // Merge function for pagination
-            merge(_existing = [], incoming = []) {
-              return incoming; // Replace with new results (for filtering/sorting)
+            // Replace the current page with the latest server result.
+            merge(_existing, incoming) {
+              return incoming;
             },
           },
         },

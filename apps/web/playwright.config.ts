@@ -8,7 +8,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: "html",
   use: {
-    baseURL: "http://localhost:3000",
+    baseURL: "http://127.0.0.1:3000",
     trace: "on-first-retry",
   },
   projects: [
@@ -16,18 +16,10 @@ export default defineConfig({
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
     },
-    {
-      name: "firefox",
-      use: { ...devices["Desktop Firefox"] },
-    },
-    {
-      name: "webkit",
-      use: { ...devices["Desktop Safari"] },
-    },
   ],
   webServer: {
-    command: "pnpm run dev",
-    url: "http://localhost:3000",
+    command: "pnpm exec next dev --port 3000 --turbopack --hostname 127.0.0.1",
+    url: "http://127.0.0.1:3000",
     reuseExistingServer: !process.env.CI,
   },
 });

@@ -44,7 +44,7 @@ type Query {
     sortOrder: String! = "desc"
     limit: Int! = 50
     offset: Int! = 0
-  ): [Task!]!
+  ): TasksConnection!
   task(id: String!): Task
   me: User
   user(id: String!): User
@@ -70,6 +70,14 @@ type Task {
   userId: String!
   createdAt: DateTime!
   updatedAt: DateTime!
+}
+
+type TasksConnection {
+  tasks: [Task!]!
+  total: Int!
+  limit: Int!
+  offset: Int!
+  hasMore: Boolean!
 }
 
 input TaskFilters {

@@ -11,6 +11,7 @@ import {
   GET_TASKS_QUERY,
   type Task,
   type TaskFilters,
+  type TasksConnection,
   UPDATE_TASK_MUTATION,
   type UpdateTaskInput,
 } from "@web/lib/graphql/tasks";
@@ -32,6 +33,10 @@ const TASK_TYPENAME = "Task";
 
 interface UseTasksReturn {
   tasks: Task[];
+  total: number;
+  limit: number;
+  offset: number;
+  hasMore: boolean;
   loading: boolean;
   error: Error | undefined;
   creating: boolean;
@@ -40,8 +45,7 @@ interface UseTasksReturn {
   createTask: (input: CreateTaskInput) => Promise<Task>;
   updateTask: (input: UpdateTaskInput) => Promise<Task>;
   deleteTask: (id: string) => Promise<boolean>;
-  refetch: () => void;
-  loadMore: (newOffset: number) => Promise<void>;
+  refetch: () => Promise<unknown>;
 }
 
 interface UseTasksOptions {
@@ -54,7 +58,7 @@ interface UseTasksOptions {
 }
 
 interface GetTasksQueryData {
-  tasks: Task[];
+  tasks: TasksConnection;
 }
 
 interface CreateTaskMutationData {
@@ -80,22 +84,32 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
     enabled = true,
   } = options;
 
+  const queryVariables = useMemo(
+    () => ({
+      filters: filters || null,
+      sortBy,
+      sortOrder,
+      limit,
+      offset,
+    }),
+    [filters, sortBy, sortOrder, limit, offset]
+  );
+
   // Query tasks
-  const { data, loading, error, refetch, fetchMore } =
-    useQuery<GetTasksQueryData>(GET_TASKS_QUERY, {
-      variables: {
-        filters: filters || null,
-        sortBy,
-        sortOrder,
-        limit,
-        offset,
-      },
+  const { data, loading, error, refetch } = useQuery<GetTasksQueryData>(
+    GET_TASKS_QUERY,
+    {
+      variables: queryVariables,
       skip: !enabled,
       fetchPolicy: "network-only", // Always fetch fresh data
       errorPolicy: "all",
-    });
+    }
+  );
 
-  const tasks: Task[] = useMemo(() => data?.tasks || [], [data]);
+  const connection = useMemo(() => data?.tasks ?? null, [data]);
+  const tasks: Task[] = useMemo(() => connection?.tasks ?? [], [connection]);
+  const total = connection?.total ?? 0;
+  const hasMore = connection?.hasMore ?? false;
 
   // Create task mutation using cache updates instead of refetch
   const [createTaskMutation, { loading: creating }] =
@@ -149,23 +163,38 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
             return;
           }
 
-          // Read current tasks from cache
-          const existingData = cache.readQuery<{ tasks: Task[] }>({
+          const existingData = cache.readQuery<GetTasksQueryData>({
             query: GET_TASKS_QUERY,
-            variables: { filters, sortBy, sortOrder, limit, offset },
+            variables: queryVariables,
           });
 
-          if (existingData) {
-            // Write updated tasks to cache
+          if (existingData?.tasks) {
+            const nextTotal = existingData.tasks.total + 1;
+            const nextTasks =
+              offset === DEFAULT_OFFSET
+                ? [
+                    data.createTask,
+                    ...existingData.tasks.tasks.filter(
+                      (task) => task.id !== data.createTask.id
+                    ),
+                  ].slice(0, limit)
+                : existingData.tasks.tasks;
+
             cache.writeQuery({
               query: GET_TASKS_QUERY,
-              variables: { filters, sortBy, sortOrder, limit, offset },
+              variables: queryVariables,
               data: {
-                tasks: [data.createTask, ...existingData.tasks],
+                tasks: {
+                  ...existingData.tasks,
+                  tasks: nextTasks,
+                  total: nextTotal,
+                  hasMore: offset + nextTasks.length < nextTotal,
+                },
               },
             });
           }
         },
+        refetchQueries: [{ query: GET_TASKS_QUERY, variables: queryVariables }],
       });
 
       if (!result.data?.createTask) {
@@ -174,7 +203,7 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
 
       return result.data.createTask;
     },
-    [createTaskMutation, filters, sortBy, sortOrder, limit, offset]
+    [createTaskMutation, limit, offset, queryVariables]
   );
 
   // Update task handler
@@ -201,26 +230,29 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
           }
 
           // Read current tasks from cache
-          const existingData = cache.readQuery<{ tasks: Task[] }>({
+          const existingData = cache.readQuery<GetTasksQueryData>({
             query: GET_TASKS_QUERY,
-            variables: { filters, sortBy, sortOrder, limit, offset },
+            variables: queryVariables,
           });
 
-          if (existingData) {
-            // Update the task in the cache
-            const updatedTasks = existingData.tasks.map((task) =>
+          if (existingData?.tasks) {
+            const updatedTasks = existingData.tasks.tasks.map((task) =>
               task.id === data.updateTask.id ? data.updateTask : task
             );
 
             cache.writeQuery({
               query: GET_TASKS_QUERY,
-              variables: { filters, sortBy, sortOrder, limit, offset },
+              variables: queryVariables,
               data: {
-                tasks: updatedTasks,
+                tasks: {
+                  ...existingData.tasks,
+                  tasks: updatedTasks,
+                },
               },
             });
           }
         },
+        refetchQueries: [{ query: GET_TASKS_QUERY, variables: queryVariables }],
       });
 
       if (!result.data?.updateTask) {
@@ -229,7 +261,7 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
 
       return result.data.updateTask;
     },
-    [updateTaskMutation, filters, sortBy, sortOrder, limit, offset]
+    [queryVariables, updateTaskMutation]
   );
 
   // Delete task handler
@@ -243,55 +275,49 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
         // Update cache directly instead of refetching
         update: (cache) => {
           // Read current tasks from cache
-          const existingData = cache.readQuery<{ tasks: Task[] }>({
+          const existingData = cache.readQuery<GetTasksQueryData>({
             query: GET_TASKS_QUERY,
-            variables: { filters, sortBy, sortOrder, limit, offset },
+            variables: queryVariables,
           });
 
-          if (existingData) {
-            // Remove deleted task from cache
-            const filteredTasks = existingData.tasks.filter(
+          if (existingData?.tasks) {
+            const filteredTasks = existingData.tasks.tasks.filter(
               (task) => task.id !== id
             );
+            const nextTotal = Math.max(existingData.tasks.total - 1, 0);
 
             cache.writeQuery({
               query: GET_TASKS_QUERY,
-              variables: { filters, sortBy, sortOrder, limit, offset },
+              variables: queryVariables,
               data: {
-                tasks: filteredTasks,
+                tasks: {
+                  ...existingData.tasks,
+                  tasks: filteredTasks,
+                  total: nextTotal,
+                  hasMore: offset + filteredTasks.length < nextTotal,
+                },
               },
             });
           }
         },
+        refetchQueries: [{ query: GET_TASKS_QUERY, variables: queryVariables }],
       });
 
       return result.data?.deleteTask ?? false;
     },
-    [deleteTaskMutation, filters, sortBy, sortOrder, limit, offset]
+    [deleteTaskMutation, offset, queryVariables]
   );
 
-  // Load more tasks handler
-  const loadMore = useCallback(
-    async (newOffset: number) => {
-      await fetchMore<GetTasksQueryData>({
-        variables: {
-          offset: newOffset,
-        },
-        updateQuery: (prev, { fetchMoreResult }) => {
-          if (!fetchMoreResult) {
-            return prev;
-          }
-          return {
-            tasks: [...prev.tasks, ...fetchMoreResult.tasks],
-          };
-        },
-      });
-    },
-    [fetchMore]
-  );
+  const handleRefetch = useCallback(async () => {
+    await refetch();
+  }, [refetch]);
 
   return {
     tasks,
+    total,
+    limit,
+    offset,
+    hasMore,
     loading,
     error,
     creating,
@@ -300,7 +326,6 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
     createTask,
     updateTask,
     deleteTask,
-    refetch,
-    loadMore,
+    refetch: handleRefetch,
   };
 }

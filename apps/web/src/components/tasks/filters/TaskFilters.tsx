@@ -151,6 +151,8 @@ export function TaskFilters() {
       isUpdatingURLRef.current = true;
       const params = new URLSearchParams(searchParams.toString());
 
+      params.delete("page");
+
       Object.entries(updates).forEach(([key, value]) => {
         if (value && value !== "") {
           params.set(key, value);
@@ -174,6 +176,7 @@ export function TaskFilters() {
 
     isUpdatingURLRef.current = true;
     const params = new URLSearchParams(searchParams.toString());
+    params.delete("page");
     if (deferredSearch) {
       params.set("search", deferredSearch);
     } else {

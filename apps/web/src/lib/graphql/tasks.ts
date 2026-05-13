@@ -22,15 +22,21 @@ export const GET_TASKS_QUERY = gql`
       limit: $limit
       offset: $offset
     ) {
-      id
-      title
-      description
-      status
-      priority
-      dueDate
-      userId
-      createdAt
-      updatedAt
+      tasks {
+        id
+        title
+        description
+        status
+        priority
+        dueDate
+        userId
+        createdAt
+        updatedAt
+      }
+      total
+      limit
+      offset
+      hasMore
     }
   }
 `;
@@ -105,6 +111,16 @@ export interface Task {
   userId: string;
   createdAt: string;
   updatedAt: string;
+}
+
+/** Paginated task list response */
+export interface TasksConnection {
+  __typename?: "TasksConnection";
+  tasks: Task[];
+  total: number;
+  limit: number;
+  offset: number;
+  hasMore: boolean;
 }
 
 /** Task filters */

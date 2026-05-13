@@ -94,7 +94,7 @@ export type Query = {
   __typename?: "Query";
   me?: Maybe<User>;
   task?: Maybe<Task>;
-  tasks: Array<Task>;
+  tasks: TasksConnection;
   user?: Maybe<User>;
   users: Array<User>;
 };
@@ -143,6 +143,15 @@ export type TaskFilters = {
   priority?: InputMaybe<Scalars["String"]["input"]>;
   search?: InputMaybe<Scalars["String"]["input"]>;
   status?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+export type TasksConnection = {
+  __typename?: "TasksConnection";
+  hasMore: Scalars["Boolean"]["output"];
+  limit: Scalars["Int"]["output"];
+  offset: Scalars["Int"]["output"];
+  tasks: Array<Task>;
+  total: Scalars["Int"]["output"];
 };
 
 export type UpdateTaskInput = {
@@ -231,18 +240,25 @@ export type GetTasksQueryVariables = Exact<{
 
 export type GetTasksQuery = {
   __typename?: "Query";
-  tasks: Array<{
-    __typename?: "Task";
-    id: string;
-    title: string;
-    description?: string | null;
-    status: string;
-    priority: string;
-    dueDate?: any | null;
-    userId: string;
-    createdAt: any;
-    updatedAt: any;
-  }>;
+  tasks: {
+    __typename?: "TasksConnection";
+    total: number;
+    limit: number;
+    offset: number;
+    hasMore: boolean;
+    tasks: Array<{
+      __typename?: "Task";
+      id: string;
+      title: string;
+      description?: string | null;
+      status: string;
+      priority: string;
+      dueDate?: any | null;
+      userId: string;
+      createdAt: any;
+      updatedAt: any;
+    }>;
+  };
 };
 
 export type GetTaskQueryVariables = Exact<{

@@ -118,11 +118,11 @@ class Query:
         sort_order: str = "desc",
         limit: int = 50,
         offset: int = 0,
-    ) -> List[Task]:
+    ) -> TasksConnection:
         """Get tasks with filtering, sorting, and pagination"""
 
         from app.models.task import TaskPriority, TaskStatus
-        from app.services.task_service import get_tasks
+        from app.services.task_service import count_tasks, get_tasks
 
         # Require authentication
         user = await info.context.require_user()
@@ -144,6 +144,8 @@ class Query:
 
         # Get tasks
         db = await info.context.get_db()
+        bounded_limit = min(limit, 100)
+        bounded_offset = max(offset, 0)
         tasks = await get_tasks(
             db=db,
             userId=user.id,
@@ -154,11 +156,26 @@ class Query:
             search=filters.search if filters else None,
             sort_by=sort_by,
             sort_order=sort_order,
-            limit=min(limit, 100),  # Cap at 100
-            offset=max(offset, 0),
+            limit=bounded_limit,
+            offset=bounded_offset,
+        )
+        total = await count_tasks(
+            db=db,
+            userId=user.id,
+            status=status,
+            priority=priority,
+            dueDate_from=filters.dueDate_from if filters else None,
+            dueDate_to=filters.dueDate_to if filters else None,
+            search=filters.search if filters else None,
         )
 
-        return [Task.from_model(task) for task in tasks]
+        return TasksConnection(
+            tasks=[Task.from_model(task) for task in tasks],
+            total=total,
+            limit=bounded_limit,
+            offset=bounded_offset,
+            has_more=bounded_offset + len(tasks) < total,
+        )
 
     @strawberry.field
     async def task(self, id: str, info: Info[GraphQLContext, None]) -> Optional[Task]:
