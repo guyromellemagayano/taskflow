@@ -19,9 +19,6 @@ import unusedImports from "eslint-plugin-unused-imports";
 const fileName = fileURLToPath(import.meta.url);
 const dirName = dirname(fileName);
 const repoRoot = resolve(dirName, "..", "..", "..");
-const astroParser = await import("astro-eslint-parser")
-  .then((module) => module.default || module)
-  .catch(() => null);
 const tsProjects = [
   resolve(repoRoot, "tsconfig.json"),
   resolve(repoRoot, "apps", "web", "tsconfig.json"),
@@ -184,27 +181,4 @@ export const baseEslintConfig = [
       ],
     },
   },
-  ...(astroParser
-    ? [
-        {
-          files: ["**/*.astro"],
-          languageOptions: {
-            parser: astroParser,
-            parserOptions: {
-              parser: typescriptParser,
-              sourceType: "module",
-              ecmaVersion: "latest",
-              extraFileExtensions: [".astro"],
-            },
-          },
-          rules: {
-            "simple-import-sort/imports": [
-              "error",
-              { groups: importSortGroups },
-            ],
-            "simple-import-sort/exports": "error",
-          },
-        },
-      ]
-    : []),
 ];
