@@ -18,6 +18,7 @@ This tracker was normalized against live repo surfaces on May 12, 2026. It recor
   - The task workspace now exposes connection-backed pagination metadata, dedicated paging controls, and a focused single-task route at `/tasks/[id]`.
   - The task workspace now has behavioral component coverage plus a first browser smoke baseline under `apps/web/e2e`.
   - The API exposes GraphQL, REST auth, health, readiness, and metrics surfaces.
+  - The API lifecycle and password hashing runtime contract now runs through FastAPI lifespan and direct Argon2 helpers without the previous deprecation warning path.
   - The worker now computes hourly task analytics snapshots from Postgres and persists the latest snapshot plus a rolling Redis history.
   - The dependency hardening baseline is now explicit: Python requirements audit cleanly, npm audit is clean, the Vite test toolchain is on the Vite 8 line, the web app runs on `next@16.2.6`, and the GraphQL codegen stack is on its patched line.
   - The Alembic history now upgrades task and user tables into the same snake_case database contract that SQLAlchemy metadata expects.
@@ -26,10 +27,11 @@ This tracker was normalized against live repo surfaces on May 12, 2026. It recor
   - The task detail route is intentionally read-only; create, edit, delete, and status transitions still live in the main workspace.
   - The current browser suite is intentionally minimal smoke coverage; it does not yet exercise authenticated task CRUD, pagination changes, or task-detail navigation.
 - Hardening debt:
-  - The API still emits follow-up runtime warnings around FastAPI lifespan migration and older Python dependency surfaces.
+  - The auth browser transport contract still mixes GraphQL token persistence and separate REST cookie-setting endpoints.
+  - Browser coverage remains a smoke baseline and does not yet cover authenticated task CRUD, paging transitions, or detail navigation.
 
 ## Current Next-Work Queue
 
 - Clean up package and contract truth beyond dependency alerts
-- Clean up FastAPI lifespan and Python dependency deprecation warnings
 - Expand authenticated browser coverage beyond the current smoke baseline
+- Unify browser session transport across GraphQL and REST auth surfaces
