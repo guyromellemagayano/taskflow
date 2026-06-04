@@ -1,6 +1,6 @@
 fastapi==0.136.1
 uvicorn[standard]==0.30.0
-strawberry-graphql[fastapi]==0.315.3
+strawberry-graphql[fastapi]==0.315.7
 sqlalchemy==2.0.35
 greenlet>=3.0.0
 alembic==1.13.0
