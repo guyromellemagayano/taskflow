@@ -85,11 +85,43 @@ catalog:
   vite: 8.0.12
   vitest: 4.1.4
   zod: 4.3.6
-ignoredBuiltDependencies:
-  - esbuild
-  - msw
-  - sharp
-  - unrs-resolver
+allowBuilds:
+  esbuild: false
+  msw: false
+  sharp: false
+  unrs-resolver: false
 
 catalogMode: strict
 cleanupUnusedCatalogs: true
+
+# Package manager contract
+pmOnFail: error
+engineStrict: true
+
+# Local workspace performance
+preferOffline: true
+preferFrozenLockfile: true
+networkConcurrency: 16
+cacheDir: .npm-cache
+storeDir: .pnpm-store
+
+# Development ergonomics
+autoInstallPeers: true
+linkWorkspacePackages: true
+enablePrePostScripts: true
+saveExact: true
+strictSsl: true
+loglevel: warn
+
+# Patched transitive dependency versions
+overrides:
+  brace-expansion: "2.1.0"
+  fast-uri: "3.1.2"
+  flatted: "3.4.2"
+  lodash: "4.18.0"
+  minimatch: "9.0.9"
+  picomatch: "4.0.4"
+  postcss: "8.5.14"
+  rollup: "4.60.1"
+  undici: "7.25.0"
+  yaml: "2.8.4"

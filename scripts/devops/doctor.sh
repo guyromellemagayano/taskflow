@@ -80,10 +80,10 @@ else
   FAILED=1
 fi
 
-if grep -Eq "^FROM node:${EXPECTED_NODE_VERSION%%.*}(-|:|$)" "$ROOT_DIR/apps/web/Dockerfile"; then
-  printf 'web docker node major: ok (%s.x)\n' "${EXPECTED_NODE_VERSION%%.*}"
+if grep -Eq "^FROM node:${EXPECTED_NODE_VERSION}(-|:|$)" "$ROOT_DIR/apps/web/Dockerfile"; then
+  printf 'web docker node: ok (%s)\n' "$EXPECTED_NODE_VERSION"
 else
-  printf 'web docker node major: expected Node %s.x base image in apps/web/Dockerfile\n' "${EXPECTED_NODE_VERSION%%.*}" >&2
+  printf 'web docker node: expected Node %s base image in apps/web/Dockerfile\n' "$EXPECTED_NODE_VERSION" >&2
   FAILED=1
 fi
 

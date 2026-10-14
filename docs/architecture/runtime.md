@@ -12,7 +12,10 @@ TaskFlow uses a split but explicit runtime model:
 
 - `.nvmrc` defines the required Node version
 - `packageManager` and `engines` in the root `package.json` define the pnpm contract
-- `.npmrc` defines repo-local package-manager behavior
+- `pnpm-workspace.yaml` defines pnpm 11 install policies, build permissions, and dependency overrides
+- `.npmrc` is reserved for registry configuration; credentials belong outside the repository
+- The web Docker base pins the same Node version as `.nvmrc` and activates pnpm from root `packageManager`
+- CI enables Corepack before initializing the pnpm dependency cache
 - `requirements*.txt` define Python runtime dependencies
 - `pyproject.toml` files are for Python tool configuration only
 

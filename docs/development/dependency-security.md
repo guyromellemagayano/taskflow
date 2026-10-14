@@ -6,7 +6,17 @@ This document records TaskFlow's current dependency-vulnerability posture and th
 
 ## Current Status
 
-Validated against live repo state on May 12, 2026.
+The original clean baseline below was recorded on May 12, 2026.
+
+Rechecked on October 14, 2026 during package-manager alignment:
+
+- `pnpm audit --json`: `9 low`, `33 moderate`, `47 high`, `4 critical`
+- The dependency lockfile is unchanged; these findings affect the existing dependency graph.
+- The pnpm 11 migration preserves the existing override versions; updating vulnerable dependencies is a separate hardening slice.
+- Python requirements audit: 11 reported findings across `strawberry-graphql`, `python-jose`, and `ecdsa` (including duplicate advisories). The same findings remain after adding the graphql-core 3.2 compatibility constraint; the affected package versions are unchanged.
+- Canonical `./scripts/devops/run-make.sh release-check` passed after constraining graphql-core to the compatible 3.2 line; no broad vulnerability remediation was included.
+
+Historical May 12 baseline:
 
 - Python audit posture: `No known vulnerabilities found`
 - npm audit posture: `0 low`, `0 moderate`, `0 high`, `0 critical`
@@ -22,7 +32,7 @@ Validated against live repo state on May 12, 2026.
 
 ### JavaScript
 
-- Root overrides now pin patched transitive versions for `brace-expansion`, `fast-uri`, `flatted`, `lodash`, `minimatch`, `picomatch`, `postcss`, `rollup`, `undici`, and `yaml`
+- Workspace overrides in `pnpm-workspace.yaml` pin patched transitive versions for `brace-expansion`, `fast-uri`, `flatted`, `lodash`, `minimatch`, `picomatch`, `postcss`, `rollup`, `undici`, and `yaml`
 - The Vitest toolchain now runs on `vite@8.0.12`, `vitest@4.1.4`, `@vitejs/plugin-react@6.0.1`, `@vitest/coverage-v8@4.1.4`, `@vitest/ui@4.1.4`, and `@vitest/eslint-plugin@1.6.16`
 - The web app and companion packages now run on the patched Next.js line: `next@16.2.6`, `@next/env@16.2.6`, `@next/eslint-plugin-next@16.2.6`, `eslint-config-next@16.2.6`, and `@next/bundle-analyzer@16.2.6`
 - The GraphQL code generation stack now runs on `@graphql-codegen/cli@6.3.0`, `@graphql-codegen/client-preset@5.3.0`, `@graphql-codegen/plugin-helpers@6.3.0`, and `@graphql-codegen/visitor-plugin-common@6.3.0`

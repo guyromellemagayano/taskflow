@@ -1,12 +1,9 @@
-FROM node:24-alpine AS base
+FROM node:24.17.0-alpine AS base
 
 # Install dependencies only when needed
 FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
-
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@10.28.0 --activate
 
 # Copy package files
 COPY .npmrc package.json pnpm-lock.yaml* pnpm-workspace.yaml ./
@@ -18,7 +15,8 @@ COPY packages/ui/package.json ./packages/ui/
 COPY packages/graphql/package.json ./packages/graphql/
 COPY packages/vitest-presets/package.json ./packages/vitest-presets/
 
-# Install dependencies
+# Activate the version declared by the root manifest and install dependencies
+RUN corepack enable && corepack prepare "$(node -p 'require("./package.json").packageManager')" --activate
 RUN pnpm install --frozen-lockfile
 
 # Rebuild the source code only when needed
@@ -31,7 +29,7 @@ RUN corepack enable
 
 # Copy package.json first to get pnpm version
 COPY package.json ./
-RUN corepack prepare pnpm@10.28.0 --activate
+RUN corepack prepare "$(node -p 'require("./package.json").packageManager')" --activate
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps ./apps
