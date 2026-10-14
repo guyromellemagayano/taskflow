@@ -1,6 +1,8 @@
 fastapi==0.136.1
 uvicorn[standard]==0.30.0
 strawberry-graphql[fastapi]==0.315.3
+# Strawberry 0.315.3 imports ExecutionContext, removed in graphql-core 3.3.
+graphql-core>=3.2.0,<3.3.0
 sqlalchemy==2.0.35
 greenlet>=3.0.0
 alembic==1.13.0
