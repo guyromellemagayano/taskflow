@@ -36,7 +36,7 @@ This document defines the release slices that describe TaskFlow's product and pl
 
 - Status: `Shipped`
 - Outcome: runtime setup, planning, grouped commits, signed verification, and validation use one canonical repo contract
-- Primary surfaces: `AGENTS.md`, `.cursor/rules/*`, `docs/`, `Makefile`, `scripts/devops/*`, `.github/workflows/ci.yml`
+- Primary surfaces: `AGENTS.md`, `docs/`, `Makefile`, `scripts/devops/*`, `.github/workflows/ci.yml`
 
 ## Slice 7: Product Docs Backfill And Status Normalization
 

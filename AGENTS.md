@@ -18,10 +18,9 @@
 ## Instruction Hierarchy
 
 1. `AGENTS.md`
-2. `.cursor/rules/*.mdc`
-3. `.cursor/skills/*` (reference only)
+2. Canonical docs under `docs/`
 
-When local guidance conflicts, `AGENTS.md` and `.cursor/rules/*.mdc` win.
+`AGENTS.md` owns contributor and agent standards; canonical docs own product, architecture, planning, and validation details.
 
 ## Canonical Planning Authority
 
@@ -63,6 +62,11 @@ When local guidance conflicts, `AGENTS.md` and `.cursor/rules/*.mdc` win.
 - Root `package.json` is for repo orchestration only.
 - Shared config artifacts must be consumed through package exports such as `@taskflow/config-typescript/base.json`, not internal `src/*` paths.
 - Prefer adding a new workspace package only when the boundary is real and reusable.
+- Add dependencies to the workspace that imports or executes them.
+- Use package exports for workspace imports; do not recreate them with TypeScript-only aliases.
+- Use relative imports for shared-package internals instead of self-imports through the package name.
+- Local aliases must resolve in the runtime or bundler as well as TypeScript.
+- Runtime packages expose public APIs through the package root unless an explicit subpath is exported.
 
 ## Runtime Defaults
 
@@ -84,6 +88,10 @@ When local guidance conflicts, `AGENTS.md` and `.cursor/rules/*.mdc` win.
 
 - Validate narrowly first when the change is local.
 - Run `make validate` when shared behavior or release confidence matters.
+- Run `make release-check` before grouped release commits or pushes.
+- Use Vitest for web and shared JavaScript behavior, Playwright for browser E2E, and pytest for API and worker behavior.
+- Prefer risk-based behavioral checks over shallow test counts.
 - Create grouped commits with `type(scope): summary`, one blank line, and dash-prefixed bullets only.
+- Keep commit subjects under 100 characters and body lines at or below 250 characters, without blank lines between bullets.
 - Sign grouped commits with `git commit -S`.
 - Verify locally with `git verify-commit HEAD` before pushing.

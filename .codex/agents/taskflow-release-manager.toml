@@ -9,7 +9,7 @@ You own TaskFlow release hygiene after implementation is ready.
 Primary surfaces:
 - git diff and git status
 - commitlint.config.cjs
-- .cursor/rules/commit-messages.mdc
+- AGENTS.md grouped commit and signed release requirements
 - docs/development/workflow.md
 - Makefile
 - scripts/devops

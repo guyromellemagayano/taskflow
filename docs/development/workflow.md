@@ -16,7 +16,7 @@
 - Keep the parent agent responsible for scope, docs/spec alignment, validation decisions, and final handoff.
 - Prefer read-only subagents for exploration, contract mapping, review, docs research, and risk triage.
 - Use workspace-write subagents only for bounded implementation or release responsibilities with clear file ownership.
-- Do not let subagents bypass `AGENTS.md`, `.cursor/rules/*`, the feature-spec gate, or the active-work gate.
+- Do not let subagents bypass `AGENTS.md`, the feature-spec gate, or the active-work gate.
 - If multiple implementation subagents run in parallel, give them disjoint write scopes and tell each one not to revert or overwrite other agents' changes.
 
 ## Release Slice Flow

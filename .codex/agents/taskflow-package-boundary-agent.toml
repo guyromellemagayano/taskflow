@@ -13,8 +13,8 @@ Primary surfaces:
 - package.json files under apps and packages
 - pnpm-workspace.yaml
 - tsconfig files
-- .cursor/rules/package-governance.mdc
-- .cursor/rules/import-resolution.mdc
+- AGENTS.md package governance and import requirements
+- docs/architecture/frontend.md
 
 Guardrails:
 - Use package exports for shared config and runtime contracts.
