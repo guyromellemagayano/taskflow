@@ -10,14 +10,18 @@ TaskFlow uses a split but explicit runtime model:
 
 ## Source Of Truth
 
-- `.nvmrc` defines the required Node version
+- `.node-version` defines the required Node version
 - `packageManager` and `engines` in the root `package.json` define the pnpm contract
 - `pnpm-workspace.yaml` defines pnpm 11 install policies, build permissions, and dependency overrides
 - `.npmrc` is reserved for registry configuration; credentials belong outside the repository
-- The web Docker base pins the same Node version as `.nvmrc` and activates pnpm from root `packageManager`
+- The web Docker base pins the same Node version as `.node-version` and activates pnpm from root `packageManager`
 - CI enables Corepack before initializing the pnpm dependency cache
 - `requirements*.txt` define Python runtime dependencies
 - `pyproject.toml` files are for Python tool configuration only
+
+## Host Setup
+
+Install mise (on macOS, `brew install mise`), enable Node version files with `mise settings add idiomatic_version_file_enable_tools node`, and run `mise install` in the repository. Interactive shells may activate mise; scripts and editor tasks use the launcher or `mise exec -- <command>`. Corepack selects pnpm from `packageManager`. CI may provide the exact Node version directly without mise.
 
 ## Canonical Commands
 

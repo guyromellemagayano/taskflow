@@ -6,7 +6,7 @@ ROOT_DIR=$(CDPATH='' cd -- "$(dirname "$0")/../.." && pwd)
 FAILED=0
 DOCKER_AVAILABLE=0
 COMPOSE_AVAILABLE=0
-EXPECTED_NODE_RAW=$(tr -d '[:space:]' <"$ROOT_DIR/.nvmrc")
+EXPECTED_NODE_RAW=$(tr -d '[:space:]' <"$ROOT_DIR/.node-version")
 EXPECTED_NODE_VERSION=${EXPECTED_NODE_RAW#v}
 EXPECTED_NODE_TAG="v${EXPECTED_NODE_VERSION}"
 EXPECTED_PNPM_VERSION=$(sed -n 's/.*"packageManager": "pnpm@\([^+"]*\)+.*/\1/p' "$ROOT_DIR/package.json")
@@ -44,12 +44,12 @@ if command -v node >/dev/null 2>&1; then
   if [ "$CURRENT_NODE_VERSION" = "$EXPECTED_NODE_TAG" ]; then
     printf 'host node: ok (%s)\n' "$CURRENT_NODE_VERSION"
   else
-    printf 'host node: %s, expected %s from .nvmrc\n' "$CURRENT_NODE_VERSION" "$EXPECTED_NODE_TAG" >&2
-    printf 'Run "nvm use" from the repository root or use ./scripts/devops/run-make.sh.\n' >&2
+    printf 'host node: %s, expected %s from .node-version\n' "$CURRENT_NODE_VERSION" "$EXPECTED_NODE_TAG" >&2
+    printf 'Run "mise install" and use "mise exec -- <command>" from the repository root or use ./scripts/devops/run-make.sh.\n' >&2
     FAILED=1
   fi
 else
-  printf 'host node: missing; install and activate %s with nvm\n' "$EXPECTED_NODE_TAG" >&2
+  printf 'host node: missing; install and activate %s with mise\n' "$EXPECTED_NODE_TAG" >&2
   FAILED=1
 fi
 
@@ -69,7 +69,7 @@ fi
 if grep -q "\"node\": \"$EXPECTED_NODE_VERSION\"" "$ROOT_DIR/package.json"; then
   printf 'package engines.node: ok (%s)\n' "$EXPECTED_NODE_VERSION"
 else
-  printf 'package engines.node: expected %s to match .nvmrc\n' "$EXPECTED_NODE_VERSION" >&2
+  printf 'package engines.node: expected %s to match .node-version\n' "$EXPECTED_NODE_VERSION" >&2
   FAILED=1
 fi
 

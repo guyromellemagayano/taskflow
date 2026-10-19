@@ -20,16 +20,17 @@ Use the repo wrapper when you want the shell to honor the repo Node version auto
 ./scripts/devops/run-make.sh validate
 ```
 
-Use plain `make` when your shell is already on the correct Node version from `.nvmrc`.
+Use plain `make` when your shell is already on the correct Node version from `.node-version`.
 
 ## Quick Start
 
 1. Install or activate the required Node version:
 
    ```bash
-   nvm install
-   nvm use
-   corepack enable
+   brew install mise
+   mise settings add idiomatic_version_file_enable_tools node
+   mise install
+   mise exec -- corepack enable
    ```
 
 2. Bootstrap the local repo:

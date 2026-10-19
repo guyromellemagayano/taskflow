@@ -34,7 +34,7 @@ bootstrap: ## Validate prerequisites, install JS dependencies, and build local i
 	@$(MAKE) urls
 
 doctor: ## Validate Node, pnpm, Docker, Compose, and root runtime settings.
-	@if [ "$${TASKFLOW_NVM_WRAPPED:-0}" = "1" ]; then \
+	@if [ "$${TASKFLOW_RUNTIME_WRAPPED:-0}" = "1" ]; then \
 		./scripts/devops/doctor.sh; \
 	else \
 		./scripts/devops/run-make.sh doctor; \

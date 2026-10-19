@@ -11,7 +11,7 @@ Primary surfaces:
 - docker-compose.yml
 - scripts/devops
 - .github/workflows
-- .nvmrc
+- .node-version
 - .npmrc
 - package.json engine and packageManager fields
 - docs/architecture/runtime.md

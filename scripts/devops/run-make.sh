@@ -1,21 +1,20 @@
-#!/bin/zsh
+#!/bin/sh
 
 set -eu
 
 ROOT_DIR=$(CDPATH='' cd -- "$(dirname "$0")/../.." && pwd)
-
-if [ -z "${NVM_DIR:-}" ]; then
-  export NVM_DIR="$HOME/.nvm"
-fi
-
-if [ ! -s "$NVM_DIR/nvm.sh" ]; then
-  printf 'nvm.sh not found at %s\n' "$NVM_DIR/nvm.sh" >&2
-  exit 1
-fi
-
-. "$NVM_DIR/nvm.sh"
-
 cd "$ROOT_DIR"
-nvm use --silent
-export TASKFLOW_NVM_WRAPPED=1
-exec make "$@"
+export TASKFLOW_RUNTIME_WRAPPED=1
+EXPECTED_NODE_VERSION=$(tr -d '[:space:]' <"$ROOT_DIR/.node-version")
+
+if command -v mise >/dev/null 2>&1; then
+  exec mise exec "node@${EXPECTED_NODE_VERSION#v}" -- make "$@"
+fi
+
+# CI and containers may already provide the exact runtime without mise.
+if command -v node >/dev/null 2>&1 && [ "$(node --version)" = "v${EXPECTED_NODE_VERSION#v}" ]; then
+  exec make "$@"
+fi
+
+printf 'Install mise, enable Node version files, and run "mise install" from the repository root.\n' >&2
+exit 1

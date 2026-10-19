@@ -13,6 +13,12 @@ This file is the live execution control surface for current delivery work.
 
 ## Most Recently Completed Initiative
 
+- Initiative: [Mise Runtime Migration](../feature-specs/cross-cutting/mise-runtime-migration.md), authorized October 19, 2026
+- Outcome: `.node-version`, explicit mise launcher with exact-Node CI fallback, updated doctor and CI references, and contributor setup; Node 24.17.0, pnpm 11.22.0, and service versions are unchanged.
+- Validation: post-retirement `make doctor`, shell checks, formatting, TOML parsing, root/nested selection, GUI-hook simulation, launcher and fallback checks, and diff hygiene passed. Packaging `release-check` also passed formatting, type checks, lint, 22 JavaScript tests, 7 API tests, 4 worker tests, production builds, and all three application image builds.
+
+### Previous Runtime And Contributor Initiative
+
 - Initiative: Runtime version alignment and contributor guidance cleanup
 - Feature specs:
   - [`../feature-specs/cross-cutting/package-manager-version-alignment.md`](../feature-specs/cross-cutting/package-manager-version-alignment.md)
@@ -25,6 +31,8 @@ This file is the live execution control surface for current delivery work.
 - Broader package-boundary cleanup for remaining workspace packages
 
 ## Latest Validation
+
+- October 19, 2026: the mise migration passed focused runtime checks and the full `./scripts/devops/run-make.sh release-check` before signed packaging. Dependency pins and application behavior were unchanged; no live application browser check was performed.
 
 - October 14, 2026: runtime doctor, frozen-lockfile installation, effective pnpm settings, changed-file Prettier checks, Codex TOML parsing, and diff hygiene passed.
 - `./scripts/devops/run-make.sh release-check` passed: formatting, TypeScript, lint, 25 JavaScript tests, 7 API tests, 4 worker tests, production builds, and API/worker/web image builds.

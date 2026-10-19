@@ -4,6 +4,8 @@ This tracker was normalized against live repo surfaces on May 12, 2026. It recor
 
 ## Current Working Contract
 
+- Host runtime tooling: [Mise Runtime Migration](../feature-specs/cross-cutting/mise-runtime-migration.md) completed October 19, 2026. `.node-version` preserves Node 24.17.0; launchers use mise with an exact-Node CI fallback. Corepack and pnpm 11.22.0 remain unchanged. Focused post-retirement checks and the full packaging `release-check` passed, including 22 JavaScript, 7 API, and 4 worker tests, production builds, and API/worker/web image builds.
+
 - Canonical runtime: `bootstrap`, `doctor`, `up`, `dev`, `down`, `logs`, `urls`, `db-migrate`, `format-check`, `check-types`, `lint`, `test`, `build`, `validate`, `release-check`, `verify-commit`
 - Canonical delivery flow: features -> checklist -> product slice -> phase -> feature spec -> active work -> bounded implementation -> validation -> grouped signed commit -> push
 - Canonical repo governance: `AGENTS.md` plus canonical `docs/`
